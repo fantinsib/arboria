@@ -55,13 +55,15 @@ private:
 
 class Table
 {
+public:
     Table(std::vector<float>& x, int n_rows);
-    
+    int n_rows_;
+    int n_cols_;
+    std::vector<float> X_;
 
+private:
 
-
-
-}
+};
 
 
 

@@ -22,14 +22,12 @@ std::span<const float> DataSet::row_X(int row) const {
     return sub;
 }
 
-
 std::span<const float> DataSet::row_y(int row) const {
 
     std::span<const float> cs(y_);
     auto sub = cs.subspan(row,1);
     return sub;
 }
-
 
 std::pair<int, int> DataSet::count_classes() const {
     // Returns a std::pair with
@@ -84,6 +82,16 @@ void DataSet::print() const {
     std::cout << std::endl;
     std::cout << std::endl;
 }
+
+Table::Table(std::vector<float>& x, int n_cols):
+
+    X_(x),
+    n_cols_(n_cols)
+    {
+        n_rows_ = x.size()/n_cols_;
+      
+    };
+
 
 
 
