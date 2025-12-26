@@ -1,11 +1,6 @@
 /*
 
-*****************
-* DataSet Class * 
-*****************
-
-Implements a class to hold and manipulate the data as 1D vectors
-
+#########################################################################
 
 */
 
@@ -20,6 +15,10 @@ Implements a class to hold and manipulate the data as 1D vectors
 namespace arboria {
 
 class DataSet
+/*
+DataSet class -> allows manipulation of the entire dataset (X and y values) for
+easier processing throughout the algorithms.
+*/
 {
 public:
     DataSet(std::vector<float> X, std::vector<float> Y, int n_rows, int n_cols);
@@ -54,24 +53,17 @@ private:
 
 
 class Table
+//Class used to manipulate a 1D array (x) as a matrix. 
 {
 public:
     Table(std::vector<float>& x, int n_rows);
     int n_rows_;
     int n_cols_;
     std::vector<float> X_;
+    int n_rows() const {return n_rows_;}
+    int n_cols() const {return n_cols_;}
 
-private:
-
+    float iloc(int row, int col) const {return X_[col +row*n_cols_];}
+    Table index_split(std::vector<int>& index) const; 
 };
-
-
-
-
-
-
-
-
-
-
 }

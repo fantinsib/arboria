@@ -84,27 +84,15 @@ void DataSet::print() const {
 }
 
 Table::Table(std::vector<float>& x, int n_cols):
-
     X_(x),
     n_cols_(n_cols)
     {
         n_rows_ = x.size()/n_cols_;
-      
     };
 
 
 
-
-
-
-
-
-
-
-
-
 }
-
 
 
 
