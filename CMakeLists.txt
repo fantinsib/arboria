@@ -9,4 +9,5 @@ src/main.cpp
 src/dataset/dataset.cpp)
 
 target_include_directories(arboria PRIVATE src
-src/dataset/dataset.h)
+src/dataset/dataset.h
+src/split_criterion/gini.h)
