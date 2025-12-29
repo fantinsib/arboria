@@ -65,6 +65,19 @@ inline float gini(const std::vector<float>& a){
 }
 
 /**
+ * @brief Computes Gini impurity from a vector of labels
+ * 
+ * @param a A vector of binary labels ({0,1})
+ * @throws std::invalid_argument If the vector contains non-binary labels (not in {0,1}) or if is empty
+ * @return Gini impurity 
+ */
+inline float gini(const std::vector<int>& a){
+    if (a.empty()) {throw std::invalid_argument("arboria::split::gini -> the passed vector is empty");}        
+    std::pair<int, int> nb_of_classes = arboria::helpers::count_classes(a);
+    return arboria::split::gini(nb_of_classes.first, nb_of_classes.second);
+}
+
+/**
  * @brief Returns the weighted Gini impurity for two vectors of labels
  * 
  * @param l The left vector of labels

@@ -69,6 +69,20 @@ inline float entropy(const std::vector<int>& a){
         return entropy(n1, n2);
 }
 
+/**
+ * @brief Computes the Shannon entropy from a vector of labels
+ * 
+ * @param a A 1D vector of labels {0,1}
+ * @throws std::invalid_argument If the passed vector is empty
+ * @return Entropy 
+ */
+inline float entropy(const std::vector<float>& a){
+
+    if (a.empty()) {throw std::invalid_argument("arboria::split::entropy -> the passed vector is empty");}        
+        auto [n1, n2] = arboria::helpers::count_classes(a);
+
+        return entropy(n1, n2);
+}
 
 /**
  * @brief Computes the weighted entropy for two vectors passed to children nodes
@@ -79,6 +93,28 @@ inline float entropy(const std::vector<int>& a){
  * @return Weighted entropy
  */
 inline float weighted_entropy(const std::vector<int>& l, const std::vector<int>& r){
+
+    float l_size = static_cast<float> (l.size());
+    float r_size = static_cast<float> (r.size());
+    float total_num_samples = l_size + r_size;
+    if (total_num_samples == 0) throw std::invalid_argument("arboria::split::weighted_entropy -> passed vectors are empty");
+
+    float left_entropy = (l_size > 0.f) ? entropy(l) : 0.f;
+    float right_entropy = (r_size > 0.f) ? entropy(r) : 0.f;
+
+    return (l_size/total_num_samples)*left_entropy + (r_size/total_num_samples)*right_entropy;
+
+}
+
+/**
+ * @brief Computes the weighted entropy for two vectors passed to children nodes
+ * 
+ * @param l Labels passed to the left node 
+ * @param r Labels passed to the right node 
+ * @throws std::invalid_argument if both vectors are empty
+ * @return Weighted entropy
+ */
+inline float weighted_entropy(const std::vector<float>& l, const std::vector<float>& r){
 
     float l_size = static_cast<float> (l.size());
     float r_size = static_cast<float> (r.size());

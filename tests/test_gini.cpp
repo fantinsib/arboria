@@ -42,7 +42,7 @@ TEST_CASE("Gini Calculations (int overload)", "[gini][int]") {
 
 }
 
-TEST_CASE("Gini Calculations (vector overload)", "[gini][std::vector]") {
+TEST_CASE("Gini Calculations (vector float overload)", "[gini][std::vector]") {
 
     // Regular cases :
     SECTION("Balanced data"){
@@ -72,6 +72,35 @@ TEST_CASE("Gini Calculations (vector overload)", "[gini][std::vector]") {
 
 }
 
+TEST_CASE("Gini Calculations (vector int overload)", "[gini][std::vector]") {
+
+    // Regular cases :
+    SECTION("Balanced data"){
+    std::vector<int> a{0,1,0,1};
+    REQUIRE(gini(a) == Catch::Approx(0.5f));
+    }
+    SECTION("Pure class"){
+    std::vector<int> a{0,0,0,0};
+    REQUIRE(gini(a) == Catch::Approx(0.f));
+    }
+    SECTION("Unbalanced class"){
+    std::vector<int> a{0,1,0,0};
+    REQUIRE(gini(a) == Catch::Approx(0.375f));
+    }
+
+    //Errors : 
+
+    SECTION("Non-binary labels"){
+    std::vector<int> a{0,1,3,0};
+    REQUIRE_THROWS_AS(gini(a), std::invalid_argument);
+    }
+
+    SECTION("Empty Vector"){
+    std::vector<int> a{};
+    REQUIRE_THROWS_AS(gini(a), std::invalid_argument);
+    }
+
+}
 
 TEST_CASE("Weighted Gini Calculations", "[gini][std::vector]") {
 
@@ -100,7 +129,7 @@ TEST_CASE("Weighted Gini Calculations", "[gini][std::vector]") {
     REQUIRE(weighted_gini(a, b) == Catch::Approx(0.4f));
     }
 
-    // Edge cases (depends on your contract)
+    // Edge case
     SECTION("One empty child") {
     std::vector<float> a{};
     std::vector<float> b{0,1,0,1}; 
