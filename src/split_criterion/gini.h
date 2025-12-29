@@ -9,6 +9,15 @@
 namespace arboria{
 namespace split{
 
+/**
+ * @brief Returns the count of positive and negative labels in a target vector
+ * 
+ * @param a the target vector. All labels must be {0,1}.
+ * @throws std::invalid_argument if a label is not binary
+ * @return Pair : {pos_count, neg_count} with
+ *      - pos_count the number of positive (1) labels in the vector
+ *      - neg_count the number of negative (0) labels in the vector
+ */
 inline std::pair<int, int> count(const std::vector<float>& a){
     constexpr float EPS = 1e-6f;
     int pos_count = 0;
@@ -19,34 +28,62 @@ inline std::pair<int, int> count(const std::vector<float>& a){
         else if (std::abs(i-1.f)< EPS){pos_count++;}
         else {throw std::invalid_argument("arboria::split::count -> non-binary label detected : label not in {0,1}.");}
     }
-    return {neg_count, pos_count};
+    return {pos_count, neg_count};
 }
 
+/**
+ * @brief Returns Gini impurity from proportions
+ *
+ * The Gini impurity is defined as:
+ *   G = 1 - p1² - p2²
+ * 
+ * @param p1 the proportion of first label
+ * @param p2 the proportion of second label
+ * @return Gini impurity 
+ */
 inline float gini(float p1, float p2){
-    // for p1 and p2 as proportions
-
     return 1.f - p1*p1 -p2*p2;
 }
 
+/**
+ * @brief Computes Gini impurity from class counts
+ * 
+ * @param n1 the number of samples with the first label
+ * @param n2 the number of samples with the second label 
+ * @throws std::runtime_error if n1 + n2 = 0
+ * @return Gini impurity 
+ */
 inline float gini(int n1, int n2){
-    //for n1 and n2 the number of samples
-
+    
     float denom = static_cast<float> (n1+n2);
     if (denom == 0){throw std::runtime_error("arboria::split::gini -> division by zero");}
     float p1 = static_cast<float>(n1) /denom;
     float p2 = static_cast<float>(n2)/denom;
     
-    return 1.f - p1*p1 -p2*p2;
+    return arboria::split::gini(p1,p2);
 }
 
+/**
+ * @brief Computes Gini impurity from a vector of labels
+ * 
+ * @param a A vector of binary labels ({0,1})
+ * @throws std::invalid_argument If the vector contains non-binary labels (not in {0,1})
+ * @return Gini impurity 
+ */
 inline float gini(const std::vector<float>& a){
-    //returns gini from a vector of targets 
     std::pair<int, int> nb_of_classes = arboria::split::count(a);
     return arboria::split::gini(nb_of_classes.first, nb_of_classes.second);
 }
 
+/**
+ * @brief Returns the weighted Gini impurity for two vectors of labels
+ * 
+ * @param l The left vector of labels
+ * @param r The right vector of labels
+ * @throws std::invalid_argument if both vector do not contain any values
+ * @return Weighted Gini Impurity
+ */
 inline float weighted_gini(const std::vector<float>& l, const std::vector<float>& r){
-    //takes the target vector of left node and target vector of right node and returns the weighted gini of the split
 
     float left_gini = gini(l);
     float l_size = static_cast<float>(l.size());
@@ -55,7 +92,7 @@ inline float weighted_gini(const std::vector<float>& l, const std::vector<float>
     float total_size = r_size+l_size;
 
     if (total_size == 0.f){
-        throw std::runtime_error("arboria::split::weighted_gini -> total_size of vectors is zero");
+        throw std::invalid_argument("arboria::split::weighted_gini -> total_size of vectors is zero");
     }
 
     return (l_size/total_size) * left_gini + (r_size/total_size) * right_gini;
