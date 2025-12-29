@@ -17,11 +17,18 @@ namespace split{
  * The Gini impurity is defined as:
  *   G = 1 - p1² - p2²
  * 
- * @param p1 the proportion of first label
- * @param p2 the proportion of second label
+ * @param p1 the proportion of first label (0 <= p1 <= 1)
+ * @param p2 the proportion of second label (0 <= p2 <= 1)
+ * @throws std::invalid_argument if p1 or p2 is negative or if (p1 + p2) != 1
  * @return Gini impurity 
  */
 inline float gini(float p1, float p2){
+    
+    constexpr float EPS = 1e-6f;
+
+    if (p1 < 0.f || p2 < 0.f || p1 > 1.f || p2 > 1.f) {throw std::invalid_argument("arboria::split::gini -> proportions must be in [0,1].");}
+    if (std::abs((p1+p2)-1.f) > EPS) {throw std::invalid_argument("arboria::split::gini -> sum of proportions does not add up to one");}
+    
     return 1.f - p1*p1 -p2*p2;
 }
 
@@ -35,6 +42,7 @@ inline float gini(float p1, float p2){
  */
 inline float gini(int n1, int n2){
     
+    if (n1 < 0 || n2 < 0) {throw std::invalid_argument("arboria::split::gini -> number of samples must be non-negative");}
     float denom = static_cast<float> (n1+n2);
     if (denom == 0){throw std::runtime_error("arboria::split::gini -> division by zero");}
     float p1 = static_cast<float>(n1) /denom;
@@ -47,10 +55,11 @@ inline float gini(int n1, int n2){
  * @brief Computes Gini impurity from a vector of labels
  * 
  * @param a A vector of binary labels ({0,1})
- * @throws std::invalid_argument If the vector contains non-binary labels (not in {0,1})
+ * @throws std::invalid_argument If the vector contains non-binary labels (not in {0,1}) or if is empty
  * @return Gini impurity 
  */
 inline float gini(const std::vector<float>& a){
+    if (a.empty()) {throw std::invalid_argument("arboria::split::gini -> the passed vector is empty");}        
     std::pair<int, int> nb_of_classes = arboria::helpers::count_classes(a);
     return arboria::split::gini(nb_of_classes.first, nb_of_classes.second);
 }
@@ -65,17 +74,16 @@ inline float gini(const std::vector<float>& a){
  */
 inline float weighted_gini(const std::vector<float>& l, const std::vector<float>& r){
 
-    float left_gini = gini(l);
-    float l_size = static_cast<float>(l.size());
-    float right_gini = gini(r);
-    float r_size = static_cast<float>(r.size());
-    float total_size = r_size+l_size;
+    float l_size = static_cast<float> (l.size());
+    float r_size = static_cast<float> (r.size());
+    float total_num_samples = l_size + r_size;
+    if (total_num_samples == 0) throw std::invalid_argument("arboria::split::weighted_gini -> passed vectors are empty");
 
-    if (total_size == 0.f){
-        throw std::invalid_argument("arboria::split::weighted_gini -> total_size of vectors is zero");
-    }
+    float left_gini = (l_size > 0.f) ? gini(l) : 0.f;
+    float right_gini = (r_size > 0.f) ? gini(r) : 0.f;
 
-    return (l_size/total_size) * left_gini + (r_size/total_size) * right_gini;
+
+    return (l_size/total_num_samples) * left_gini + (r_size/total_num_samples) * right_gini;
 
 }
 
