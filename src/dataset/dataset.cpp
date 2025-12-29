@@ -1,9 +1,10 @@
 #include <iostream>
+#include <stdexcept>
+
 #include "dataset.h"
 
 
 namespace arboria{
-
 DataSet::DataSet(std::vector<float> X, std::vector<float> Y, int n_rows, int n_cols):
 
     X_(X),
@@ -15,38 +16,8 @@ DataSet::DataSet(std::vector<float> X, std::vector<float> Y, int n_rows, int n_c
     if (n_rows_ != y_.size()) throw std::invalid_argument("The size of y does not match the number of samples.");
 }
 
-std::span<const float> DataSet::row_X(int row) const {
 
-    std::span<const float> cs(X_);
-    auto sub = cs.subspan(row*n_cols_, n_cols_);
-    return sub;
-}
-
-std::span<const float> DataSet::row_y(int row) const {
-
-    std::span<const float> cs(y_);
-    auto sub = cs.subspan(row,1);
-    return sub;
-}
-
-std::pair<int, int> DataSet::count_classes() const {
-    // Returns a std::pair with
-    // first -> the number of positive class in the dataset
-    // second -> the number of negative class in the dataset
-
-    int pos_count = 0;
-    int neg_count = 0;
-
-    for (auto i : y_){
-
-        if (i==0) neg_count++;
-        if (i==1) pos_count++;
-    }
-
-    return {pos_count, neg_count};
-}
-
-DataSet DataSet::index_split(std::vector<int>& index) const {
+DataSet DataSet::index_split(const std::vector<int>& index) const {
     // Returns a subsplit of the dataset object of the rows from the specified index
 
     //vector index references nth row of the dataset
@@ -54,6 +25,7 @@ DataSet DataSet::index_split(std::vector<int>& index) const {
     std::vector<float> y_results;
 
     for (auto i : index){
+        if (i<0 || i>= n_rows_) {throw std::out_of_range("DataSet.index_split : row index out of bounds");}
         for (int col = 0; col < n_cols_; col++){
             X_results.push_back(iloc_x(i, col));
 
@@ -81,22 +53,7 @@ void DataSet::print() const {
     std::cout << std::endl;
     std::cout << std::endl;
     std::cout << std::endl;
-}
-
-Table::Table(std::vector<float>& x, int n_cols):
-    X_(x),
-    n_cols_(n_cols)
-    {
-        n_rows_ = x.size()/n_cols_;
-    };
-
 
 
 }
-
-
-
-
-
-
-
+}

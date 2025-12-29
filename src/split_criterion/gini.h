@@ -5,31 +5,11 @@
 #include <utility>
 #include <stdexcept>
 
+#include "helpers/helpers.h"
 
 namespace arboria{
 namespace split{
 
-/**
- * @brief Returns the count of positive and negative labels in a target vector
- * 
- * @param a the target vector. All labels must be {0,1}.
- * @throws std::invalid_argument if a label is not binary
- * @return Pair : {pos_count, neg_count} with
- *      - pos_count the number of positive (1) labels in the vector
- *      - neg_count the number of negative (0) labels in the vector
- */
-inline std::pair<int, int> count(const std::vector<float>& a){
-    constexpr float EPS = 1e-6f;
-    int pos_count = 0;
-    int neg_count = 0;
-
-    for (const auto& i : a) {
-        if (std::abs(i-0.f)< EPS){neg_count++;}
-        else if (std::abs(i-1.f)< EPS){pos_count++;}
-        else {throw std::invalid_argument("arboria::split::count -> non-binary label detected : label not in {0,1}.");}
-    }
-    return {pos_count, neg_count};
-}
 
 /**
  * @brief Returns Gini impurity from proportions
@@ -71,7 +51,7 @@ inline float gini(int n1, int n2){
  * @return Gini impurity 
  */
 inline float gini(const std::vector<float>& a){
-    std::pair<int, int> nb_of_classes = arboria::split::count(a);
+    std::pair<int, int> nb_of_classes = arboria::helpers::count_classes(a);
     return arboria::split::gini(nb_of_classes.first, nb_of_classes.second);
 }
 
