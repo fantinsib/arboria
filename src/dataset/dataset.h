@@ -75,7 +75,7 @@ public:
      * @param index Vector of row indices (0<= indices < n_rows_)
      * @return DataSet 
      * @throws std::out_of_range if an index value is out of bounds
-     * @note Rows are returned in the same order as specified in 'index'
+     * @note Rows are returned in the same order as specified in 'index'. Duplicate indices in index will result in duplicates samples
      */
     DataSet index_split(const std::vector<int>& index) const;
 

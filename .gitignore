@@ -13,6 +13,8 @@ dist/
 CMakeFiles/
 CMakeCache.txt
 cmake-build-*/
+CTest*
+*.log
 
 # OS
 .DS_Store
