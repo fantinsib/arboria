@@ -3,6 +3,7 @@
 #########################################################################
 
 */
+#pragma once
 #include <iostream>
 #include <vector>
 
@@ -39,6 +40,12 @@ public:
 
     // Returns the target values
     const std::vector<float>& y() const {return y_;}
+
+    //Returns true if either the samples vector or the target vector is empty
+    bool is_empty() const {
+        if (X_.empty() || y_.empty()) {return true;}
+        else {return false;}
+    }
 
     /**
      * @brief Returns the value of a sample's feature
@@ -78,6 +85,7 @@ public:
      * 
      */
     void print() const;
+
 
 
 private:

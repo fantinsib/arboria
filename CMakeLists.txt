@@ -1,22 +1,28 @@
 ##################### ROOT CMAKE ###################
 cmake_minimum_required(VERSION 3.16)
 project(arboria LANGUAGES CXX)
+
 include(CTest)
 enable_testing()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# ---- Main executable ----
-add_executable(arboria
-    src/main.cpp
+# ---- Core lib ----
+add_library(arboria_lib
     src/dataset/dataset.cpp
 )
 
-# On ajoute uniquement des DOSSIERS ici
-target_include_directories(arboria PRIVATE
+target_include_directories(arboria_lib PUBLIC
     ${PROJECT_SOURCE_DIR}/src
 )
+
+# ---- Main exe ----
+add_executable(arboria
+    src/main.cpp
+)
+
+target_link_libraries(arboria PRIVATE arboria_lib)
 
 # ---- Catch2 ----
 include(FetchContent)
