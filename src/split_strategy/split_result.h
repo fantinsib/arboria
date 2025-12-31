@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <span>
+#include <limits>
 
 
 /**
@@ -13,8 +14,8 @@
  */
 struct SplitResult {
 
-    int split_feature;
-    float split_threshold;
+    int split_feature =-1;
+    float split_threshold = 0.f;
     float score = std::numeric_limits<float>::infinity();
 
 };

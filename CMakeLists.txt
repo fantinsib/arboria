@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # ---- Core lib ----
 add_library(arboria_lib
     src/dataset/dataset.cpp
+    src/node/node.cpp
+    src/split_strategy/splitter.cpp
 )
 
 target_include_directories(arboria_lib PUBLIC
@@ -32,7 +34,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
   GIT_TAG v3.5.2
 )
-
 FetchContent_MakeAvailable(Catch2)
 
+# --- Tests ---
 add_subdirectory(tests)

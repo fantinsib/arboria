@@ -6,6 +6,7 @@ add_executable(arboria_tests
     test_entropy.cpp
     test_cart_threshold.cpp
     test_dataset.cpp
+    test_count.cpp
 )
 
 target_link_libraries(arboria_tests
