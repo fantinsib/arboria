@@ -4,6 +4,7 @@
 #include <utility>
 #include <stdexcept>
 #include <cmath>
+#include <span>
 
 namespace arboria {
 namespace helpers {
@@ -52,6 +53,35 @@ inline std::pair<int, int> count_classes(const std::vector<int>& a){
     }
     return {pos_count, neg_count};
 }
+
+/**
+ * @brief Returns the count of positive and negative labels in a target vector from a span of indices
+ * 
+ * 
+ * @param idx a span of row index. All index must be 0 <= i < targets.size()
+ * @param targets the target vector. All labels must be {0,1}.
+ * @throws std::invalid_argument if a label is not binary
+ * @throws std::out_of_range if an index is not in range [0, targets.size()) 
+ * @return Pair : {pos_count, neg_count} with
+ *      - pos_count the number of positive (1) labels in the vector
+ *      - neg_count the number of negative (0) labels in the vector
+ */
+inline std::pair<int, int> count_classes(std::span<const int> idx, const std::vector<int>& targets) {
+    
+    int pos_count = 0;
+    int neg_count = 0;
+    int vec_size = targets.size();
+
+    for (int i :idx) {
+        if (i < 0 || i >= vec_size) throw std::out_of_range("arboria::helpers::count_classes -> one of the referenced index is out of bounds for target vector");
+        if (targets[i] == 1) {pos_count++;}
+        else if (targets[i] == 0) {neg_count++;}
+        else throw std::invalid_argument("arboria::helpers::count_classes -> non-binary label detected : label not in {0,1}.");
+    }
+    return {pos_count, neg_count};
+
+}
+
 
 }
 }
