@@ -153,3 +153,38 @@ TEST_CASE("Weighted entropy Calculations", "[entropy][std::vector]") {
     REQUIRE_THROWS_AS(weighted_entropy(a, b), std::invalid_argument);
     }
 }
+
+
+TEST_CASE("Weighted entropy Calculations (int overload)", "[entropy][int]") {
+
+    // Regular cases
+    SECTION("Balanced pure children") {
+    REQUIRE(weighted_entropy(0, 4, 4,0) == Catch::Approx(0.f));
+    }
+
+    SECTION("Both perfectly mixed") {
+    REQUIRE(weighted_entropy(2,2, 2,2) == Catch::Approx(1.f));
+    }
+
+    SECTION("One mixed one pure") {
+    REQUIRE(weighted_entropy(2,2,0,4) == Catch::Approx(0.5f));
+    }
+
+    SECTION("Unequal size") {
+    REQUIRE(weighted_entropy(0,2, 4, 4) == Catch::Approx(0.8f));
+    }
+
+    // Edge case
+    SECTION("One empty child") {    
+    REQUIRE(weighted_entropy(0, 0, 2,2) == Catch::Approx(1.f));
+    }
+
+    // Errors
+    SECTION("Empty inputs") {
+    REQUIRE_THROWS_AS(weighted_entropy(0,0,0,0), std::invalid_argument);
+    }
+
+    SECTION("Negative counts") {
+    REQUIRE_THROWS_AS(weighted_entropy(1,2,0,-1), std::invalid_argument);
+    }
+}

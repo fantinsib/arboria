@@ -102,7 +102,7 @@ TEST_CASE("Gini Calculations (vector int overload)", "[gini][std::vector]") {
 
 }
 
-TEST_CASE("Weighted Gini Calculations", "[gini][std::vector]") {
+TEST_CASE("Weighted Gini Calculations (vector overload)", "[gini][std::vector]") {
 
     // Regular cases
     SECTION("Balanced pure children") {
@@ -147,5 +147,40 @@ TEST_CASE("Weighted Gini Calculations", "[gini][std::vector]") {
     std::vector<float> a{0,2,0};
     std::vector<float> b{1,1,1};
     REQUIRE_THROWS_AS(weighted_gini(a, b), std::invalid_argument);
+    }
+}
+
+
+TEST_CASE("Weighted Gini Calculations (int overload)", "[gini][int]") {
+
+    // Regular cases
+    SECTION("Balanced pure children") {
+    REQUIRE(weighted_gini(0, 4, 4,0) == Catch::Approx(0.f));
+    }
+
+    SECTION("Both perfectly mixed") {
+    REQUIRE(weighted_gini(2,2, 2,2) == Catch::Approx(0.5f));
+    }
+
+    SECTION("One mixed one pure") {
+    REQUIRE(weighted_gini(2,2,0,4) == Catch::Approx(0.25f));
+    }
+
+    SECTION("Unequal size") {
+    REQUIRE(weighted_gini(0,2, 4, 4) == Catch::Approx(0.4f));
+    }
+
+    // Edge case
+    SECTION("One empty child") {    
+    REQUIRE(weighted_gini(0, 0, 2,2) == Catch::Approx(0.5f));
+    }
+
+    // Errors
+    SECTION("Empty inputs") {
+    REQUIRE_THROWS_AS(weighted_gini(0,0,0,0), std::invalid_argument);
+    }
+
+    SECTION("Negative counts") {
+    REQUIRE_THROWS_AS(weighted_gini(1,2,0,-1), std::invalid_argument);
     }
 }

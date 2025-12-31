@@ -100,6 +100,32 @@ inline float weighted_gini(const std::vector<float>& l, const std::vector<float>
 
 }
 
+/**
+ * @brief Returns the weighted Gini impurity from the number of pos and neg labels in the left and right node
+ * 
+ * @param l_pos : the number of positive label in the left child
+ * @param l_neg : the number of negative label in the left child
+ * @param r_pos : the number of positive label in the right child
+ * @param r_neg : the number of negative label in the right child
+ * @throws std::invalid_argument if the total sum of the parameters is zero or if a value is negative
+ * @return Weighted Gini Impurity
+ */
+inline float weighted_gini(int l_pos, int l_neg, int r_pos, int r_neg){
+
+    if (l_pos < 0 || l_neg < 0 || r_pos < 0 || r_neg < 0) {throw std::invalid_argument("arboria::split::weighted_gini -> values must be non-negative");}
+
+    const float total_num_samples = l_pos + l_neg + r_pos + r_neg;
+    const float l_size = static_cast<float>(l_pos) + static_cast<float>(l_neg);
+    const float r_size = static_cast<float>(r_pos) + static_cast<float>(r_neg);
+    if (total_num_samples == 0.f) throw std::invalid_argument("arboria::split::weighted_gini -> no values were passed");
+
+    const float left_gini = (l_size > 0.f) ? gini(l_pos, l_neg) : 0.f;
+    const float right_gini = (r_size > 0.f) ? gini(r_pos, r_neg) : 0.f;
+
+
+    return (l_size/total_num_samples) * left_gini + (r_size/total_num_samples) * right_gini;
+
+}
 
 }
 
