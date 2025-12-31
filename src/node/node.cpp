@@ -1,7 +1,7 @@
-#include "myforest/node.h"
+#include "node.h"
 #include <random>
 
-namespace myforest {
+namespace arboria {
 
 Node::Node():
     feature_index(-1),

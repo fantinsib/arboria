@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-namespace myforest{
+namespace arboria{
 class Node
 {
 public:
