@@ -63,6 +63,18 @@ TEST_CASE("Constructor Errors : incoherent X.size/y.size") {
 
 }
 
+TEST_CASE("Constructor Errors : non-binary labels in target vector") {
+
+    std::vector<float> x{1,2,3,
+                        4,5,6,
+                        7, 8 ,9,
+                        10, 11,12};
+    std::vector<float> y{0,0,2,};
+    
+    
+    REQUIRE_THROWS_AS(DataSet(x, y, 4, 3), std::invalid_argument);
+
+}
 
 TEST_CASE("Is empty") {
 
@@ -90,7 +102,6 @@ TEST_CASE("Index split basic usage") {
     
     std::vector<int> idx_r{0,4};    
     REQUIRE_THROWS_AS(data.index_split(idx_r), std::out_of_range);
-
 
 }
 

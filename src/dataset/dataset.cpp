@@ -14,6 +14,9 @@ DataSet::DataSet(std::vector<float> X, std::vector<float> Y, int n_rows, int n_c
 {
     if (n_cols_*n_rows_ != X_.size()) throw std::invalid_argument("The specified number of rows and columns does not match the number of samples.");
     if (n_rows_ != y_.size()) throw std::invalid_argument("The size of y does not match the number of samples.");
+    for (auto i : y_){
+        if (i != 0 && i != 1) throw std::invalid_argument("arboria::DataSet : Non binary labels detected");
+    };
 }
 
 
