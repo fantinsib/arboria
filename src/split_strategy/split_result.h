@@ -1,5 +1,6 @@
 
 
+#include <cmath>
 #include <vector>
 #include <span>
 #include <limits>
@@ -15,7 +16,13 @@
 struct SplitResult {
 
     int split_feature =-1;
-    float split_threshold = 0.f;
+    float split_threshold = std::numeric_limits<float>::quiet_NaN();
     float score = std::numeric_limits<float>::infinity();
 
+    
+    bool has_split() const {
+        return split_feature >= 0 && std::isfinite(score);
+    }
+
 };
+

@@ -7,6 +7,7 @@ add_executable(arboria_tests
     test_cart_threshold.cpp
     test_dataset.cpp
     test_count.cpp
+    test_best_split.cpp
 )
 
 target_link_libraries(arboria_tests
