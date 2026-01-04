@@ -8,7 +8,7 @@
 #include <catch2/catch_approx.hpp>  
 #include <vector>
 
-#include "split_strategy/cart_threshold.h"
+#include "split_strategy/threshold/cart_threshold.h"
 #include "dataset/dataset.h"
 
 using arboria::split_strategy::cart_threshold;

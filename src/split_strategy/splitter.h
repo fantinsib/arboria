@@ -3,13 +3,14 @@
 #include <vector>
 #include <span>
 
-#include "split_result.h"
-#include "split_param.h"
+#include "types/split_result.h"
+#include "types/split_param.h"
+#include "types/split_stats.h"
 #include "split_criterion/gini.h"
 #include "split_criterion/entropy.h"
 #include "dataset/dataset.h"
-#include "split_strategy/cart_threshold.h"
-#include "split_stats.h"
+#include "split_strategy/threshold/cart_threshold.h"
+
 
 namespace arboria{
 namespace split_strategy{
