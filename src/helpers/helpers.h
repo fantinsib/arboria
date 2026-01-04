@@ -82,6 +82,22 @@ inline std::pair<int, int> count_classes(std::span<const int> idx, const std::ve
 
 }
 
+inline std::pair<int, int> count_classes(std::span<const int> idx, const std::vector<float>& targets) {
+    
+    int pos_count = 0;
+    int neg_count = 0;
+    int vec_size = targets.size();
+
+    for (int i :idx) {
+        if (i < 0 || i >= vec_size) throw std::out_of_range("arboria::helpers::count_classes -> one of the referenced index is out of bounds for target vector");
+        if (targets[i] == 1.f) {pos_count++;}
+        else if (targets[i] == 0.f) {neg_count++;}
+        else throw std::invalid_argument("arboria::helpers::count_classes -> non-binary label detected : label not in {0,1}.");
+    }
+    return {pos_count, neg_count};
+
+}
+
 
 }
 }
