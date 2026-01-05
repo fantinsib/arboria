@@ -13,6 +13,7 @@ add_library(arboria_lib
     src/dataset/dataset.cpp
     src/node/node.cpp
     src/split_strategy/splitter.cpp
+    src/tree/DecisionTree/DecisionTree.cpp
 )
 
 target_include_directories(arboria_lib PUBLIC

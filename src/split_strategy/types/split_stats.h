@@ -1,4 +1,4 @@
-
+#pragma once
 
 /**
  * @brief struct controlling the passed arguments to the scoring function

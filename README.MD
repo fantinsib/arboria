@@ -17,13 +17,12 @@ The long-term goal is to make Arboria a **usable library with Python bindings**,
 - CART-style threshold generation
 - Best split search with criterion, threshold and sampling parameters
 - Tests
-- DecisionTree fitting
+- DecisionTree fitting & single predict
 
 ---
 
 ## Not implemented yet
 
-- Predictions 
 - Random / quantile threshold strategies
 - Feature subsampling
 - Python bindings

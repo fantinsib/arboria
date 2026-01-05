@@ -16,7 +16,7 @@ namespace split_strategy{
  * @brief Generates a vector of thresholds candidates for a 
  * specific feature of the DataSet and for selected samples
  * 
- * @param idx A span of row indices (.size() > 2)
+ * @param idx A span of row indices (.size() >= 2)
  * @param col The col index of the feature (0 < col < data.n_cols())
  * @param data A reference to the DataSet containing the data
  * @throws std::invalid_argument if the DataSet is empty, if the col value is illegal
@@ -46,7 +46,7 @@ inline std::vector<float> cart_threshold(const std::span<const int> idx, int col
         float a = data.iloc_x(sorted_idx[i], col);
         float b = data.iloc_x(sorted_idx[i+1], col);
 
-        output[i] = ((a+b)/2.f);
+       output[i] = (((a)+(b))/2.f);
     }
 
     return output;

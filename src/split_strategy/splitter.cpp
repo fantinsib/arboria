@@ -1,7 +1,6 @@
 /*
 
                     SPLITTER CLASS 
-                    to do -> add tests
 
 */
 
@@ -97,7 +96,7 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
                     const float x = data.iloc_x(i, col);
                     const int y = data.iloc_y(i); 
                     
-                    if (x <= t) { (y == 1 ? l_pos_count : l_neg_count)++; }
+                    if (x < t) { (y == 1 ? l_pos_count : l_neg_count)++; }
                     else { (y == 1 ? r_pos_count : r_neg_count)++; } 
             }
 
@@ -107,7 +106,7 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
             SplitStats split_stats{l_pos_count, l_neg_count, r_pos_count, r_neg_count};            
             float score = score_function(params, split_stats);
 
-            if (score < best_score){
+            if (score < best_score){ //possible improvement : stop the loop if perfect split is found ?
                 
                 best_score = score;
 

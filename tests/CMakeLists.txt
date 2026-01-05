@@ -8,6 +8,8 @@ add_executable(arboria_tests
     test_dataset.cpp
     test_count.cpp
     test_best_split.cpp
+    test_node.cpp
+    test_decisiontree.cpp
 )
 
 target_link_libraries(arboria_tests

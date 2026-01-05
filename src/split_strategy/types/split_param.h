@@ -1,3 +1,5 @@
+#pragma once
+
 enum class Criterion { Gini, Entropy };
 enum class ThresholdComputation { CART, Random, Quantile };
 enum class FeatureSelection { All, RandomK };

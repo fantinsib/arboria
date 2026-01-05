@@ -31,6 +31,8 @@ class Splitter
          * @throws std::invalid_argument if data or idx is empty
          * @note If no split is found, will return a SplitResult with default value
          * On a SplitResult, one can test if a split has been found with SplitResult.has_split()
+         * Splits are calculated with the following logic : if sample feature < candidate threshold -> left node
+         * if sample feature >= candidate threshold -> right node
          * @return a SplitResult struct 
          */
         SplitResult best_split(std::span<const int> idx, const DataSet& data, const SplitParam& params);
