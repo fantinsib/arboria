@@ -9,7 +9,7 @@
 #include "tree/DecisionTree/DecisionTree.h"
 #include "split_strategy/types/split_param.h"
 
-TEST_CASE("DecisionTree : basic usage - fit") {
+TEST_CASE("DecisionTree :  predict_one() basic usage - fit") {
 
 
     std::vector<float> X {0,2,1,
@@ -33,7 +33,7 @@ TEST_CASE("DecisionTree : basic usage - fit") {
 }
 
 
-TEST_CASE("DecisionTree : basic usage - simple predict") {
+TEST_CASE("DecisionTree :  predict_one() basic usage - simple predict") {
 
 SECTION("Class 1 pred") {
     std::vector<float> X {0,2,1,
@@ -79,7 +79,7 @@ SECTION("Class 2 pred") {
 
 }
 
-TEST_CASE("DecisionTree : predict from duplicate row") {
+TEST_CASE("DecisionTree :  predict_one() :predict from duplicate row") {
 
     std::vector<float> X {0,2,1,
                         11, 9, 8,
@@ -108,7 +108,7 @@ TEST_CASE("DecisionTree : predict from duplicate row") {
 }
 
 
-TEST_CASE("DecisionTree : Duplicate samples & unique class") {
+TEST_CASE("DecisionTree :  predict_one() : Duplicate samples & unique class") {
     std::vector<float> X {0,2,1,
                         0,2,1,
                         0,2,1,
@@ -128,7 +128,7 @@ TEST_CASE("DecisionTree : Duplicate samples & unique class") {
     REQUIRE(pred == 0);
 }
 
-TEST_CASE("DecisionTree : unsplitable data with unbalanced classes") {
+TEST_CASE("DecisionTree :  predict_one() :unsplitable data with unbalanced classes") {
     std::vector<float> X {0,2,1,
                         0,2,1,
                         0,2,1,
@@ -148,7 +148,7 @@ TEST_CASE("DecisionTree : unsplitable data with unbalanced classes") {
     REQUIRE(pred == 1); //Should return the majority class - here 1 
 }
 
-TEST_CASE("DecisionTree : unsplitable data with balanced classes") {
+TEST_CASE("DecisionTree :  predict_one() : unsplitable data with balanced classes") {
     std::vector<float> X {0,2,1,
                         0,2,1,
                         0,2,1,
@@ -182,7 +182,7 @@ TEST_CASE("DecisionTree : error - one sample") {
 
 }
 
-TEST_CASE("DecisionTree : error - trying to predict from non fitted tree") {
+TEST_CASE("DecisionTree : predict_one() error - trying to predict from non fitted tree") {
     
     std::vector<float> X {0,2,1,
                         0,2,1,
@@ -201,3 +201,112 @@ TEST_CASE("DecisionTree : error - trying to predict from non fitted tree") {
 
 }
 
+TEST_CASE("DecisionTree - .predict() - basic usage") {
+
+
+    std::vector<float> X {0,2,1,
+                        7,9,10,
+                        1,1,2,
+                        11, 9, 8,
+                        2,0,1}; 
+    std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
+    
+    arboria::DataSet data(X, y, 5, 3);
+    
+    arboria::DecisionTree tree(4);
+    
+    SplitParam params;
+
+    tree.fit(data, params);
+    
+    std::vector<float> samples_to_predict{1,2,0,
+                                        0,-1,-2,
+                                        10,7,9,
+                                        7,12,9};
+    
+    std::vector<int> preds = tree.predict(samples_to_predict);
+
+    REQUIRE(tree.is_fitted() == true);
+    REQUIRE(tree.num_features == 3);
+    REQUIRE(preds[0]==0);
+    REQUIRE(preds[1]==0);
+    REQUIRE(preds[2]==1);
+    REQUIRE(preds[3]==1);
+}
+
+TEST_CASE("DecisionTree - .predict() - unique sample") {
+
+
+    std::vector<float> X {0,2,1,
+                        7,9,10,
+                        1,1,2,
+                        11, 9, 8,
+                        2,0,1}; 
+    std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
+    
+    arboria::DataSet data(X, y, 5, 3);
+    
+    arboria::DecisionTree tree(4);
+    
+    SplitParam params;
+
+    tree.fit(data, params);
+    
+    std::vector<float> samples_to_predict{10,6,10};
+    
+    std::vector<int> preds = tree.predict(samples_to_predict);
+
+    REQUIRE(tree.is_fitted() == true);
+    REQUIRE(tree.num_features == 3);
+    REQUIRE(preds[0]==1);
+
+}
+
+
+TEST_CASE("DecisionTree - error .predict() - not fitted") {
+
+    std::vector<float> X {0,2,1,
+                        7,9,10,
+                        1,1,2,
+                        11, 9, 8,
+                        2,0,1}; 
+    std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
+    
+    arboria::DataSet data(X, y, 5, 3);
+    
+    arboria::DecisionTree tree(4);
+    
+    SplitParam params;
+    
+    std::vector<float> samples_to_predict{1,2,0,
+                                        0,-1,-2,
+                                        10,7,9,
+                                        7,12,9};
+    
+
+    REQUIRE_THROWS_AS(tree.predict(samples_to_predict), std::invalid_argument);
+
+}
+
+TEST_CASE("DecisionTree - error .predict() - dimension mismatch") {
+
+    std::vector<float> X {0,2,1,
+                        7,9,10,
+                        1,1,2,
+                        11, 9, 8,
+                        2,0,1}; 
+    std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
+    
+    arboria::DataSet data(X, y, 5, 3);
+    
+    arboria::DecisionTree tree(4);
+    
+    SplitParam params;
+    
+    std::vector<float> samples_to_predict{1,2,0,
+                                        0,-1,-2,
+                                        7,12};
+
+    REQUIRE_THROWS_AS(tree.predict(samples_to_predict), std::invalid_argument);
+
+}

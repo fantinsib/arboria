@@ -9,6 +9,8 @@ __pycache__/
 # Build
 build/
 dist/
+doxygen/
+search/
 *.egg-info/
 CMakeFiles/
 CMakeCache.txt
@@ -21,3 +23,6 @@ CTest*
 
 # clangd
 *.idx
+
+Doxyfile
+

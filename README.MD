@@ -1,5 +1,7 @@
 # 🌳 Arboria
 
+![CI](https://github.com/fantinsib/arboria/actions/workflows/ci.yml/badge.svg)
+
 ### A lightweight machine learning Python library for tree-based models.
 
 ⚠️ **Work in progress**
@@ -17,7 +19,7 @@ The long-term goal is to make Arboria a **usable library with Python bindings**,
 - CART-style threshold generation
 - Best split search with criterion, threshold and sampling parameters
 - Tests
-- DecisionTree fitting & single predict
+- DecisionTree training and prediction
 
 ---
 

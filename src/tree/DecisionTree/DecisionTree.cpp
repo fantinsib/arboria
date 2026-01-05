@@ -4,6 +4,7 @@
 
 
 #include <algorithm>
+#include <cstddef>
 #include <numeric>
 #include <stdexcept>
 #include <cmath>
@@ -29,16 +30,37 @@ void DecisionTree::fit(const DataSet& data, const SplitParam& params) {
     num_features = n_cols;
 }
 
-int DecisionTree::predict_one(const std::vector<float>& sample) const{
+int DecisionTree::predict_one(const std::span<const float> sample) const{
     if (!fitted) {throw std::invalid_argument("arboria::DecisionTree::predict_one -> tree has not been fitted");}
     if (sample.size() != num_features) throw std::invalid_argument("arboria::DecisionTree::predict_one -> the passed sample for prediction has different number of features than seen in training");
     return predict_one_(sample, root_node);
 }
 
+std::vector<int> DecisionTree::predict(const std::span<const float> samples) const {
+
+    if (!fitted || num_features == 0) throw std::invalid_argument("arboria::DecisionTree::predict -> tree has not been fitted");
+    size_t nf = static_cast<size_t>(num_features);
+    if (samples.size() % nf != 0) throw std::invalid_argument("arboria::DecisionTree::predict -> passed samples do not have the correct dimension");
+
+    size_t num_samples = samples.size()/nf;
+    std::vector<int> preds(num_samples);
+
+    for (size_t s = 0; s<num_samples; s++){
+        auto sample = samples.subspan(s*nf, nf);
+        preds[s] = predict_one(sample);
+    }
+    
+    return preds;
+}
+
+
+
+
+
 
 //############ Private ####
 
-int DecisionTree::predict_one_(const std::vector<float>& sample, const Node& node) const{
+int DecisionTree::predict_one_(const std::span<const float> sample, const Node& node) const{
 
 
     if (node.is_leaf) {return node.predicted_class;}
