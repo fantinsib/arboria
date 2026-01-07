@@ -14,6 +14,7 @@ add_library(arboria_lib
     src/node/node.cpp
     src/split_strategy/splitter.cpp
     src/tree/DecisionTree/DecisionTree.cpp
+    src/split_strategy/feature_selection/randomK/randomK.cpp
 )
 
 target_include_directories(arboria_lib PUBLIC

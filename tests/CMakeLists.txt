@@ -10,6 +10,7 @@ add_executable(arboria_tests
     test_best_split.cpp
     test_node.cpp
     test_decisiontree.cpp
+    test_randomK.cpp
 )
 
 target_link_libraries(arboria_tests

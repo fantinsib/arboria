@@ -16,6 +16,7 @@ namespace feature_selection{
 std::vector<int> randomK(std::span<const int> features, const int mtry, std::mt19937& rng){
 
     if (features.size() == 0 || features.size()< mtry) throw std::invalid_argument("arboria::feature_selection::randomK : the number of passed features is invalid");
+    if (mtry <= 0) throw std::invalid_argument("arboria::feature_selection::randomK : mtry value must be greater than or equal to zero");
     std::vector<int> vec(features.begin(), features.end());
     
     //Fisher-Yates style shuffle:
