@@ -22,6 +22,7 @@ namespace feature_selection{
  * @param rng mt19937 random number generator
  * @throws std::invalid_argument if the number of features passed is inferior to mtry or if the vector is empty
  * @return the indices of the features
+ * @note the indices are picked following a Fischer-Yates style shuffle
  */
 std::vector<int> randomK(std::span<const int> features, const int mtry, std::mt19937& rng);
 

@@ -11,6 +11,7 @@ add_executable(arboria_tests
     test_node.cpp
     test_decisiontree.cpp
     test_randomK.cpp
+    test_sampling.cpp
 )
 
 target_link_libraries(arboria_tests
