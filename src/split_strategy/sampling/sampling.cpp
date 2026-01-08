@@ -5,8 +5,10 @@
 
 #include "sampling.h"
 #include <algorithm>
+#include <stdexcept>
 #include <unordered_set>
 #include <numeric>
+#include <stdexcept>
 
 namespace arboria{
 namespace sampling{
