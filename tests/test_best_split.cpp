@@ -11,11 +11,22 @@
 #include "split_criterion/gini.h"
 #include "split_strategy/splitter.h"
 #include "dataset/dataset.h"
+#include "split_strategy/types/split_param.h"
+#include "split_strategy/types/split_result.h"
+#include "split_strategy/types/split_context.h"
 
 using arboria::split_strategy::Splitter;
 using arboria::DataSet;
 using arboria::split::weighted_gini;
 using arboria::split::weighted_entropy;
+
+/*
+
+----------------------------------------------------------------------------
+BEST_SPLIT BASIC USAGE 
+----------------------------------------------------------------------------
+
+*/
 
 TEST_CASE("best_split : basic usage with perfect split - Gini") {
 
@@ -229,6 +240,15 @@ TEST_CASE("best_split : no split when 1 sample") {
 
 }
 
+/*
+
+----------------------------------------------------------------------------
+BEST_SPLIT ERRORS
+----------------------------------------------------------------------------
+
+*/
+
+
 TEST_CASE("best_split : errors - empty data") {
     std::vector<float> x{}; 
     std::vector<float> y{};
@@ -261,4 +281,151 @@ TEST_CASE("best_split : errors - empty idx") {
 }
 
 
+/*
 
+----------------------------------------------------------------------------
+BEST_SPLIT + RANDOMK BASIC USAGE 
+----------------------------------------------------------------------------
+
+*/
+
+
+
+TEST_CASE("best_split + randomk : basic usage with span overload") {
+
+    std::vector<float> x{1,2,12,
+                        2,9,6,
+                        4, 8 ,11,
+                        0.5, 1,5};
+    std::vector<float> y{0,1,1,0};
+    
+    DataSet data(x, y, 4, 3); 
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param;
+    param.f_selection = FeatureSelection::RandomK;
+    param.mtry = 2;
+
+    Splitter splitter;
+
+    SplitContext ctx1(1);
+    SplitResult split = splitter.best_split(s, data, param, ctx1);
+
+    REQUIRE(split.has_split() == true);
+
+}
+
+
+TEST_CASE("best_split + randomk : reproductibility") {
+
+    std::vector<float> x{1,2,12,
+                        2,9,6,
+                        1, 8 ,12,
+                        0.5, 1,6};
+    std::vector<float> y{0,1,1,0};
+    
+    DataSet data(x, y, 4, 3); 
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param;
+    param.f_selection = FeatureSelection::RandomK;
+    param.mtry = 2;
+
+    Splitter splitter;
+
+    SplitContext ctx1(1);
+    SplitResult a = splitter.best_split(s, data, param, ctx1);
+
+    SplitContext ctx2(1);
+    SplitResult b = splitter.best_split(s, data, param, ctx2);
+
+    REQUIRE(a.split_feature == b.split_feature);
+    REQUIRE(a.split_threshold == Catch::Approx(b.split_threshold));
+
+}
+
+TEST_CASE("best_split + randomk : mtry == num_features") {
+
+    std::vector<float> x{1,2,12,
+                        2,9,6,
+                        4, 8 ,11,
+                        0.5, 1,5};
+    std::vector<float> y{0,1,1,0};
+    
+    DataSet data(x, y, 4, 3); 
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param;
+    param.f_selection = FeatureSelection::RandomK;
+    param.mtry = 3;
+
+    Splitter splitter;
+
+    SplitContext ctx1(1);
+    SplitResult split = splitter.best_split(s, data, param, ctx1);
+
+    REQUIRE(split.has_split() == true);
+
+}
+
+
+TEST_CASE("best_split + randomk : errors - called w/o context") {
+
+    std::vector<float> x{1,2,12,
+                        2,9,6,
+                        1, 8 ,12,
+                        0.5, 1,6};
+    std::vector<float> y{0,1,1,0};
+    
+    DataSet data(x, y, 4, 3); 
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param;
+
+    param.f_selection = FeatureSelection::RandomK; //pick randomK but omit SplitContext with RNG
+    Splitter splitter;
+
+    REQUIRE_THROWS_AS(splitter.best_split(s, data, param), std::invalid_argument);
+
+}
+
+
+TEST_CASE("best_split + randomk : errors - mtry illegal") {
+
+    std::vector<float> x{1,2,12,
+                        2,9,6,
+                        1, 8 ,12,
+                        0.5, 1,6};
+    std::vector<float> y{0,1,1,0};
+    
+    DataSet data(x, y, 4, 3); 
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param;
+    SplitContext ctx(1);
+    param.f_selection = FeatureSelection::RandomK;
+    
+
+    Splitter splitter;
+
+    SECTION("mtry == 0"){
+    param.mtry = 0;
+    REQUIRE_THROWS_AS(splitter.best_split(s, data, param, ctx), std::logic_error);
+    }
+
+    SECTION("mtry < 0"){
+    param.mtry = -2;
+    REQUIRE_THROWS_AS(splitter.best_split(s, data, param, ctx), std::logic_error);
+    }
+
+    SECTION("mtry > num_features"){
+    param.mtry = 4;
+    REQUIRE_THROWS_AS(splitter.best_split(s, data, param, ctx), std::logic_error);
+    }
+
+}

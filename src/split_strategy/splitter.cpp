@@ -22,6 +22,10 @@ namespace split_strategy{
 
 Splitter::Splitter() {};
 
+// POSSIBLE IMPROVEMENT : 
+// add overload/modify best_split to make the split based on a set of row indices and col indices 
+//--> would allow to remove the feature selection section from inside best_split and handle it on a case by case basis
+
 SplitResult Splitter::best_split(std::span<const int> idx, const DataSet &data, const SplitParam &params){
     
     if (params.f_selection == FeatureSelection::RandomK) throw std::invalid_argument("aboria::split_strategy::Splitter::best_split : incompatible parameters and context for split - RNG must be passed if RandomK used");
@@ -58,6 +62,7 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
         
         case FeatureSelection::RandomK : {
             if (params.mtry <= 0) {throw std::logic_error("arboria::split_strategy_Splitter::best_split : number of sampled features for RandomK must be positive");}
+            if (params.mtry > num_features) {throw std::logic_error("arboria::split_strategy_Splitter::best_split : mtry parameter can't be larger than number of features");}
             std::vector<int> all_features (num_features);
             std::iota(all_features.begin(), all_features.end(), 0);
             features = randomK(all_features, params.mtry, context.rng);

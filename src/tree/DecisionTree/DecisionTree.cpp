@@ -39,7 +39,7 @@ void DecisionTree::fit(const DataSet& data, const std::span<int> idx, const Spli
     int n_cols = data.n_cols();
     if (n_rows <= 1) {throw std::invalid_argument("arboria::DecisionTree::fit -> invalid fitted DataSet");}
     
-    fit_(data, root_node, idx, 0, params);
+    fit_(data, root_node, idx, 0, params, context);
     fitted = true; 
     num_features = n_cols;
 }

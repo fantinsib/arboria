@@ -4,7 +4,7 @@ enum class Criterion { Gini, Entropy };
 enum class ThresholdComputation { CART, Random, Quantile };
 enum class FeatureSelection { All, RandomK };
 /**
- * @brief struct controlling how a split is searched
+ * @brief struct controlling the policy of the split (split logic)
  *
  * SplitParams defines all the algorithmic choices used when searching
  * for the best split in a node:

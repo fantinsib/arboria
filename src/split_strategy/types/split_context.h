@@ -6,10 +6,10 @@
 #include <random>
 
 /**
- * @brief Struct used to pass arguments to the Splitter::best_split function depending on the 
- * type of tree 
+ * @brief Struct used to carry the execution context of the model
+ * to apply split policy 
  * 
- * 
+ * @param seed The registered seed used for the RNG
  */
 
 struct SplitContext{
