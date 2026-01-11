@@ -7,6 +7,7 @@
 #include "dataset/dataset.h"
 #include "split_strategy/splitter.h"
 #include "helpers/helpers.h"
+#include "split_strategy/types/split_context.h"
 
 
 using arboria::split_strategy::Splitter;
@@ -41,6 +42,21 @@ class DecisionTree
         */
         void fit(const DataSet& data, const SplitParam& params);
 
+        /**
+        * @brief Fit the decision tree on the specified rows of a dataset
+        * and given contextual inputs.
+        * Builds the tree recursively starting from the root node.
+        *
+        * @param data DataSet object containing samples and targets
+        * @param idx Non-owning view of the rows of the dataset to be
+        * used for splitting
+        * @param params SplitParam object passing the criterion used, 
+        * the threshold computation method and the feature selection policy
+        * @note If no valid split is found, the node becomes a leaf ; leaf
+        * prediction is the majority class. In case of a tie, class prediction is 1.
+        * @throws std::invalid_argument if the dataset is empty or invalid.
+        */
+        void fit(const DataSet& data, const std::span<int> idx, const SplitParam& params, SplitContext& context);
 
         /**
          * @brief Predict the class of the passed sample
@@ -92,6 +108,26 @@ class DecisionTree
          */
         void fit_(const DataSet& data, Node& node, std::span<int> idx, int depth, const SplitParam& params);
         
+        /**
+         * @brief Recursively build the decision tree
+         *
+         * This method partitions the provided index span according to the
+         * best available split and recursively constructs child nodes
+         *
+         * @param data Training dataset
+         * @param node Current node 
+         * @param idx Span of row indices corresponding to the samples
+         * reaching this node.
+         * @param depth Current depth in the tree
+         * @param params SplitParam object passing the criterion used, 
+         * the threshold computation method and the feature selection policy
+         * @param context SplitContext object passing the RNG if required by 
+         * the algorithm
+         */
+        void fit_(const DataSet& data, Node& node, std::span<int> idx, int depth, const SplitParam& params, SplitContext& context);
+
+
+
         /**
          * @brief Returns the predicted class of the current node or pass the sample 
          * to the left/right child 

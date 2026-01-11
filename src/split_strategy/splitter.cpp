@@ -5,19 +5,31 @@
 */
 
 #include "splitter.h"
+#include "feature_selection/randomK/randomK.h"
+#include "split_strategy/types/split_context.h"
+#include "split_strategy/types/split_param.h"
 
 #include <numeric>
+#include <random>
 #include <stdexcept>
 #include <vector>
 #include <span>
 
+using arboria::feature_selection::randomK;
 
 namespace arboria {
 namespace split_strategy{
 
 Splitter::Splitter() {};
 
-SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, const SplitParam& params){
+SplitResult Splitter::best_split(std::span<const int> idx, const DataSet &data, const SplitParam &params){
+    
+    if (params.f_selection == FeatureSelection::RandomK) throw std::invalid_argument("aboria::split_strategy::Splitter::best_split : incompatible parameters and context for split - RNG must be passed if RandomK used");
+    SplitContext context(0u);
+    return best_split(idx, data, params, context);
+};
+
+SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, const SplitParam& params, SplitContext& context){
 
 // --------- Initialization & validity conditions ----------
 
@@ -45,8 +57,10 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
             break;
         
         case FeatureSelection::RandomK : {
-            throw std::logic_error("Not yet implemented");
-            // TO IMPLEMENT 
+            if (params.mtry <= 0) {throw std::logic_error("arboria::split_strategy_Splitter::best_split : number of sampled features for RandomK must be positive");}
+            std::vector<int> all_features (num_features);
+            std::iota(all_features.begin(), all_features.end(), 0);
+            features = randomK(all_features, params.mtry, context.rng);
             break;
             };
             

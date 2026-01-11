@@ -85,3 +85,77 @@ TEST_CASE("RandomK : errors - mtry <= 0"){
     REQUIRE_THROWS_AS(randomK(features, mtry, rng), std::invalid_argument);
     }
 }
+
+// int overload 
+// -----------------------------------------------------------------------------
+
+TEST_CASE("RandomK - int overload : basic usage") {
+
+    int n_features = 5;
+    int mtry = 3;
+    std::mt19937 rng(0);
+
+    std::vector<int> sub_features = randomK(n_features, mtry, rng);
+
+    REQUIRE(sub_features.size() == size_t(3)); //check for correct number of indices returned
+
+    std::sort(sub_features.begin(), sub_features.end());
+    REQUIRE(sub_features[0]>= 0); //no negative indices returned
+    REQUIRE(sub_features[sub_features.size()-1]<= 4); //no indices outside the initial scope returned
+
+    auto i = std::adjacent_find(sub_features.begin(), sub_features.end());
+    REQUIRE(i == sub_features.end()); //only unique values
+}
+
+TEST_CASE("RandomK int overload : mtry == features.size()") {
+
+    int features = 5;
+    int mtry = 5;
+    std::mt19937 rng(0);
+
+    std::vector<int> sub_features = randomK(features, mtry, rng);
+
+    REQUIRE(sub_features.size() == size_t(5)); //check for correct number of indices returned
+
+    std::sort(sub_features.begin(), sub_features.end());
+    REQUIRE(sub_features[0]>= 0); //no negative indices returned
+    REQUIRE(sub_features[sub_features.size()-1]<= 4); //no indices outside the initial scope returned
+
+    auto i = std::adjacent_find(sub_features.begin(), sub_features.end());
+    REQUIRE(i == sub_features.end()); //only unique values
+}
+
+
+TEST_CASE("RandomK int overload : errors - no features"){
+
+    int features = 0; 
+    int mtry = 1;
+    std::mt19937 rng(0);
+
+    REQUIRE_THROWS_AS(randomK(features, mtry, rng), std::invalid_argument);
+}
+
+TEST_CASE("RandomK int overload : errors - mtry>n_features"){
+
+    int features = 5;
+    int mtry = 7;
+    std::mt19937 rng(0);
+
+    REQUIRE_THROWS_AS(randomK(features, mtry, rng), std::invalid_argument);
+}
+
+TEST_CASE("RandomK int overload : errors - mtry <= 0"){
+
+    int features = 5;
+    std::mt19937 rng(0);
+
+    SECTION("mtry == 0"){
+    int mtry = 0;
+    REQUIRE_THROWS_AS(randomK(features, mtry, rng), std::invalid_argument);
+    }
+
+    SECTION("mtry < 0"){
+    int mtry = -1;
+    REQUIRE_THROWS_AS(randomK(features, mtry, rng), std::invalid_argument);
+    }
+}

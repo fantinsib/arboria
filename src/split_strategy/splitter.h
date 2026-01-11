@@ -3,6 +3,7 @@
 #include <vector>
 #include <span>
 
+#include "types/split_context.h"
 #include "types/split_result.h"
 #include "types/split_param.h"
 #include "types/split_stats.h"
@@ -28,6 +29,28 @@ class Splitter
          * @param params a SplitParam struct containing info on the criterion 
          * (default : Gini), the threshold method calculation (default : CART),
          * the range of features selected for the split (default : all)
+         * @param context a SplitContext struct containing contextual arguments 
+         * to be passed to the function (std::mt19937)
+         * @throws std::invalid_argument if data or idx is empty
+         * @note If no split is found, will return a SplitResult with default value
+         * On a SplitResult, one can test if a split has been found with SplitResult.has_split()
+         * Splits are calculated with the following logic : if sample feature < candidate threshold -> left node
+         * if sample feature >= candidate threshold -> right node
+         * @return a SplitResult struct 
+         */
+        SplitResult best_split(std::span<const int> idx, const DataSet& data, const SplitParam& params, SplitContext& context);
+
+        /**
+         * @brief Search the best split given a set of row 
+         * from a DataSet objet and a set of parameters
+         * 
+         * @param idx a span on a vector of row index from the DataSet object
+         * @param data a DataSet object containing the samples and the targets
+         * @param params a SplitParam struct containing info on the criterion 
+         * (default : Gini), the threshold method calculation (default : CART),
+         * the range of features selected for the split (default : all)
+         * @param context a SplitContext struct containing contextual arguments 
+         * to be passed to the function (std::mt19937)
          * @throws std::invalid_argument if data or idx is empty
          * @note If no split is found, will return a SplitResult with default value
          * On a SplitResult, one can test if a split has been found with SplitResult.has_split()
@@ -36,6 +59,7 @@ class Splitter
          * @return a SplitResult struct 
          */
         SplitResult best_split(std::span<const int> idx, const DataSet& data, const SplitParam& params);
+    
     
     private:
         /**

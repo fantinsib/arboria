@@ -19,4 +19,6 @@ struct SplitParam {
     ThresholdComputation t_comp = ThresholdComputation::CART;
     FeatureSelection f_selection = FeatureSelection::All;
 
+    int mtry = -1; // used only if f_selection is RandomK 
+
 };
