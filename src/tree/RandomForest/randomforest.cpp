@@ -14,12 +14,14 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <random>
 #include <stdexcept>
 
 using arboria::sampling::bootstrap;
+using arboria::ForestTree;
 
 namespace arboria{
 
@@ -82,7 +84,7 @@ std::vector<float> RandomForest::predict_proba(std::span<const float> samples) c
         float sum_votes =0; 
         auto sample = samples.subspan(s*nf, nf);
         for (const auto& t : trees){
-            sum_votes += t->predict_one(sample);
+            sum_votes += t.tree->predict_one(sample);
         }
         preds[s] = sum_votes/static_cast<float>(n_estimators);
         }
@@ -100,6 +102,47 @@ std::vector<int> RandomForest::predict(std::span<const float> sample) const {
     std::transform(prob_pred.begin(), prob_pred.end(), class_pred.begin(),
                     [](float x){return (x >= 0.5) ? 1 : 0;});
     return class_pred;
+}
+
+float RandomForest::out_of_bag(const DataSet &data) const {
+
+    if (!fitted) throw std::invalid_argument("arboria::RandomForest::out_of_bag : RandomForest was never fitted");
+    if (data.is_empty()) throw std::invalid_argument("arboria::RandomForest::out_of_bag : DataSet is empty");
+
+    const size_t n_rows = data.n_rows();
+    const size_t n_cols = data.n_cols();
+
+    if (n_rows == 0 || n_cols ==0) throw std::logic_error("arboria::RandomForest::out_of_bag : DataSet has no rows or cols");
+    if (n_cols != static_cast<size_t>(num_features)) throw std::invalid_argument("arboria::RandomForest::out_of_bag : DataSet passed does not have the same dimensions as seen during training");
+
+    std::span<const float> samples(data.X());
+
+    int correct_pred = 0;
+    int wrong_pred = 0;
+
+    for (size_t row = 0; row < n_rows; row++){
+        
+        std::span<const float> s = samples.subspan(row*n_cols, n_cols);
+        int num_pred = 0;
+        int sum_pred = 0;
+        for (const ForestTree& t : trees){
+
+            if (!t.in_bag[row]){
+                int pred = t.tree->predict_one(s);
+                sum_pred = sum_pred + pred;
+                num_pred++;   
+            }
+        }
+        if (num_pred !=0) {
+            int row_vote = (static_cast<float>(sum_pred)/static_cast<float>(num_pred) >= 0.5) ? 1 : 0;
+            (row_vote == data.iloc_y(row)) ? correct_pred++ : wrong_pred++; 
+        }
+
+    }
+    if (correct_pred+wrong_pred == 0) throw std::logic_error("arboria::RandomForest::out_of_bag : no OOB samples.");
+    return static_cast<float>(correct_pred)/(static_cast<float>(correct_pred)+static_cast<float>(wrong_pred));
+    
+
 }
 /*
 --------------------------------------------------------------------------------------
@@ -123,13 +166,20 @@ void RandomForest::fit_(const DataSet& data, const SplitParam &param, SplitConte
         // passing from bootstrap to DecisionTree.fit(); 
         // to delete when all ref to indices will be in size_t
         std::vector<int> passed_idx(boostrapped_indices.size());
+        std::vector<bool> seen_idx(n_rows, false);
         for (size_t row_idx = 0; row_idx <boostrapped_indices.size(); row_idx++ ){
             passed_idx[row_idx] = static_cast<int>(boostrapped_indices[row_idx]);
+            seen_idx[boostrapped_indices[row_idx]] = true;
         }
         // then fit tree with param.f_selection = RandomK & 
         // add to the RF list 
-        trees.push_back(std::make_unique<DecisionTree>(max_depth));
-        trees.back()->fit(data, passed_idx, param, context);
+        ForestTree forest_tree;
+        forest_tree.tree = std::make_unique<DecisionTree>(max_depth);
+        forest_tree.in_bag = std::move(seen_idx);
+
+        trees.push_back(std::move(forest_tree));
+        trees.back().tree->fit(data, passed_idx, param, context);
+
     }
 
 

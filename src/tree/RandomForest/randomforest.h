@@ -14,6 +14,24 @@
 
 namespace arboria {
 
+
+/**
+ * @brief Struct to save each tree of the forest with extra informations
+ *
+ * @param tree A RandomForest DecisionTree 
+ * @param in_bag A boolean vector with size equal to number of 
+ * samples in training dataset with true if sample was seen 
+ * during training
+ *
+ */
+struct ForestTree {
+    //Vector containing unique pointers to the fitted DecisionTree of the forest 
+    std::unique_ptr<DecisionTree> tree;    
+    //Saves the indices of the samples that were seen by the tree during training 
+    std::vector<bool> in_bag; 
+
+};
+
 class RandomForest{
 
     public:
@@ -91,6 +109,18 @@ class RandomForest{
     */
     std::vector<float> predict_proba(std::span<const float> sample) const;
 
+    /**
+     * @brief Compute the out-of-bag score of the RandomForest.
+     *
+     * Once fitted, allows to validate the tree by predicting samples
+     * that were not bootstrapped and seen during training.
+     *
+     * @param data The DataSet seen during training
+     * 
+     * @return float : the accuracy of OOB prediction 
+     */
+    float out_of_bag(const DataSet& data) const;
+
     //Returns current seed
     std::uint32_t seed() const {return seed_;}
 
@@ -142,8 +172,7 @@ class RandomForest{
     //seed : can be specified by the user (at declaration or via .set_seed()). Otherwise, 
     // is set by std::random_devices
     uint32_t seed_;
-    //Vector containing unique pointers to the fitted DecisionTree of the forest 
-    std::vector<std::unique_ptr<DecisionTree>> trees;
+    std::vector<ForestTree> trees;
 
 };
 
