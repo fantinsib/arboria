@@ -17,7 +17,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(arboria, m){
+PYBIND11_MODULE(_arboria, m){
 
     py::class_<arboria::DecisionTree>(m, "DecisionTree")
     .def(py::init<int>())

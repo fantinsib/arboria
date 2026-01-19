@@ -55,15 +55,14 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(pybind11)
 
 # ---- Pybind11 module ----
-pybind11_add_module(arboria MODULE src/bindings/bindings.cpp)
-set_target_properties(arboria PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/python/arboria"
-)
-target_link_libraries(arboria PRIVATE arboria_lib)
-target_compile_features(arboria PRIVATE cxx_std_20)
+pybind11_add_module(_arboria MODULE src/bindings/bindings.cpp)
+include(GNUInstallDirs)
+install(TARGETS _arboria LIBRARY DESTINATION arboria)
+target_link_libraries(_arboria PRIVATE arboria_lib)
+target_compile_features(_arboria PRIVATE cxx_std_20)
 
-# ---- Tests (optional) ----
-option(ARBORIA_BUILD_TESTS "Build tests" ON)
+# ---- Tests ----
+option(ARBORIA_BUILD_TESTS "Build tests" OFF)
 if (ARBORIA_BUILD_TESTS)
   add_subdirectory(tests)
 endif()

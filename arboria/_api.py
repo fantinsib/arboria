@@ -1,5 +1,5 @@
-from .arboria import DecisionTree as _DecisionTree
-from .arboria import RandomForest as _RandomForest
+from ._arboria import DecisionTree as _DecisionTree
+from ._arboria import RandomForest as _RandomForest
 
 
 
