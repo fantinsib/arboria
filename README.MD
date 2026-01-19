@@ -2,52 +2,90 @@
 
 ![CI](https://github.com/fantinsib/arboria/actions/workflows/ci.yml/badge.svg)
 
-### A lightweight machine learning Python library for tree-based models.
+### A lightweight machine learning Python/C++ module for tree-based models.
 
-⚠️ **Work in progress**
+This repository contains C++ implementations of tree-based models with Python bindings.
 
-Arboria is a C++ project focused on implementing core decision tree algorithms from scratch, with an emphasis on clear design, explicit behavior, and solid test coverage.
+## Features
 
-The long-term goal is to make Arboria a **usable library with Python bindings**, while keeping the core logic implemented in C++.
+This version currently supports :
 
----
-
-## What’s implemented so far
-
-- `DataSet` class
-- Split criteria : Gini, Entropy
-- Threshold generation : midpoint splits
-- Sampling methods : bootstrapping and subsampling
-- Best split search with criterion, threshold and sampling parameters
-- DecisionTree training and prediction
-- Tests
+#### `DecisionTree` (binary classification)
+- `.fit`: fits a tree using the CART algorithm
+- `.predict`: predicts the class of passed samples
 
 
-## Not implemented yet
+#### `RandomForest` (binary classification)
+- `.fit`: fits a RandomForest with `n_estimators` trees. Uses RandomK feature selection (`m_try` features). Supports reproducible randomness via `seed`.
+- `.predict` / `.predict_proba`: predicts classes or returns average votes across trees
+- `.out_of_bag`: returns accuracy on training samples not bootstrapped during training
 
-- Random / quantile threshold strategies
-- Python bindings
-- Performance optimizations
+## Installation
+
+### Requirements
+- Python >= 3.9
+- A C++ compiler with C++20 support (clang / gcc)
+- CMake (installed automatically by `pip` when possible)
+
+````bash
+git clone https://github.com/fantinsib/arboria.git
+cd arboria
+pip install .
+````
+Recommended tip : install in a venv 
+````bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install .
+````
+
+## Usage
+
+A demo notebook can be found [here](https://github.com/fantinsib/arboria/blob/main/docs/arboria_demo.ipynb).
+
+````python
+from arboria import DecisionTree, RandomForest
+````
+
+### Initializing the models
+
+````python
+tree = DecisionTree(max_depth = 5)
+rf = RandomForest(n_estimators = 30, m_try = 5, max_depth = 5, seed = 10)
+````
+
+### Fit
+
+````python
+tree.fit(x_train, y_train, criterion="gini")
+rf.fit(x_train, y_train, criterion = "entropy")
+````
+
+### Predict
+
+````python
+# Returns predicted classes as a np array of int
+tree.predict(x_test) 
+rf.predict(x_test) 
+
+# Returns an array of the trees voting averages :
+rf.predict_proba(x_test)
+````
+
+### Evaluate 
+````python
+# Returns accuracy score on the samples not bootstrapped during training :
+rf.out_of_bag(x_train, y_train)
+````
 
 
-## Current projet structure
+## Roadmap 
 
-```text
-arboria/
-├── src/       
-│   ├── dataset/         # Dataset representation and validation
-│   ├── split_strategy/  # Split logic (split search, threshold, sampling)
-│   ├── split_criterion/ # Impurity measures (Gini, entropy)
-│   ├── node/            # Tree node structure
-│   └── tree/            # Decision tree construction and prediction
-│
-├── tests/      # Unit tests (Catch2), organized by component
-├── docs/       # Design notes
-├── CMakeLists.txt
-└── README.md
-```
+⚠️ Still work in progress
 
-## Notes
-
-- APIs and internal structures may change
-- The project is not yet production-ready
+#### Planned improvements:
+- Additional model parameters (min_samples_split, min_samples_leaf, max_samples, class_weights...)
+- Performance optimizations for RandomForest
+- Parallelism
+- Extra-Trees, Honest Trees, Quantile Trees
