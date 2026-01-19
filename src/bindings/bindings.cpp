@@ -22,7 +22,7 @@ PYBIND11_MODULE(arboria, m){
     py::class_<arboria::DecisionTree>(m, "DecisionTree")
     .def(py::init<int>())
 
-    .def("fit",
+    .def("_fit",
     [](arboria::DecisionTree& self, 
          py::array_t<float, py::array::c_style | py::array::forcecast> X,
         py::array_t<float, py::array::c_style | py::array::forcecast> y,
@@ -62,10 +62,26 @@ PYBIND11_MODULE(arboria, m){
                 self.fit(data, param);
             },
             
-            py::arg("X"), py::arg("y"), py::arg("criterion") = "gini"
-        )
+            py::arg("X"), py::arg("y"), py::arg("criterion") = "gini",
+            R"doc(
+                Fit the decision tree.
 
-        .def("predict",
+                Parameters
+                ----------
+                X : ndarray of shape (n_samples, n_features)
+                    Training input samples.
+                y : ndarray of shape (n_samples,)
+                    Target labels.
+                criterion : {"gini", "entropy"}, default="gini"
+                    Splitting criterion used to evaluate candidate splits.
+
+                Returns
+                -------
+                None
+                )doc"
+            )
+
+        .def("_predict",
         [](arboria::DecisionTree& self, 
            py::array_t<float, py::array::c_style | py::array::forcecast> X
         )
@@ -108,7 +124,7 @@ PYBIND11_MODULE(arboria, m){
             py::arg("seed") = std::nullopt
     )
 
-        .def("fit", 
+        .def("_fit", 
             [](arboria::RandomForest& self, 
             py::array_t<float, py::array::c_style | py::array::forcecast> X,
             py::array_t<float, py::array::c_style | py::array::forcecast> y,
@@ -150,7 +166,7 @@ PYBIND11_MODULE(arboria, m){
             py::arg("X"), py::arg("y"), py::arg("criterion") = "gini"
         )
 
-        .def("predict", 
+        .def("_predict", 
         [](arboria::RandomForest& self, py::array_t<float, py::array::c_style | py::array::forcecast> X){
 
             auto xb = X.request();
@@ -181,7 +197,7 @@ PYBIND11_MODULE(arboria, m){
         
         )
 
-        .def("predict_proba",
+        .def("_predict_proba",
             [](arboria::RandomForest& self, py::array_t<float, py::array::c_style | py::array::forcecast> X){
                 
                 auto xb = X.request();
@@ -216,7 +232,7 @@ PYBIND11_MODULE(arboria, m){
         
         )
 
-        .def("out_of_bag",
+        .def("_out_of_bag",
             [](arboria::RandomForest& self, py::array_t<float, py::array::c_style | py::array::forcecast> X,
             py::array_t<float, py::array::c_style | py::array::forcecast> y){
                 

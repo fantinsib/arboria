@@ -27,4 +27,4 @@ CTest*
 *.idx
 
 Doxyfile
-
+*.so

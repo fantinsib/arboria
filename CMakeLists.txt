@@ -56,6 +56,9 @@ FetchContent_MakeAvailable(pybind11)
 
 # ---- Pybind11 module ----
 pybind11_add_module(arboria MODULE src/bindings/bindings.cpp)
+set_target_properties(arboria PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/python/arboria"
+)
 target_link_libraries(arboria PRIVATE arboria_lib)
 target_compile_features(arboria PRIVATE cxx_std_20)
 

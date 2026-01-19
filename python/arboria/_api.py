@@ -1,0 +1,120 @@
+from .arboria import DecisionTree as _DecisionTree
+from .arboria import RandomForest as _RandomForest
+
+
+
+class DecisionTree(_DecisionTree):
+    def __init__(self, max_depth: int):
+        """
+        Decision tree classifier.
+
+        Parameters
+        ----------
+        max_depth : int
+            Maximum depth of the tree.
+        """
+        super().__init__(max_depth)
+
+    def fit(self, X, y, criterion="gini"):
+        """
+        Fit the decision tree.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+        y : ndarray of shape (n_samples,)
+        criterion : {"gini", "entropy"}, default="gini"
+        """
+        return self._fit(X, y, criterion)
+    
+    def predict(self, X):
+        """
+        Returns predicted class for samples X.
+
+        Parameters
+        ----------
+        X : ndarray with same shape as training data
+
+        Returns
+        -------
+        np.ndarray : array of predicted class as integers.
+        """
+        return self._predict(X)
+
+
+class RandomForest(_RandomForest):
+    def __init__(self, n_estimators, m_try, max_depth, seed = None):
+        """
+        Random Forest classifier.
+
+        Parameters
+        ----------
+        n_estimators : int
+            Number of trees in the forest
+        m_try: int
+            Number of features to sample at each split
+        max_depth : int
+            Maximum depth of the tree.
+        seed : int
+            Seed of the tree. Default None will result in a random seed.
+        """
+        return super().__init__(n_estimators, m_try, max_depth, seed)
+
+    def fit(self, X, y, criterion= 'gini'):
+        """
+        Fit the Random Forest.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+        y : ndarray of shape (n_samples,)
+        criterion : {"gini", "entropy"}, default="gini"
+        """
+
+        return self._fit(X, y, criterion)
+    
+    def predict(self, X):
+        """
+        Returns predicted class for samples X.
+
+        Parameters
+        ----------
+        X : ndarray with same shape as training data
+
+        Returns
+        -------
+        np.ndarray : array of predicted class as integers.
+        """
+        return self._predict(X)
+    
+    def predict_proba(self, X):
+        """
+        Returns predicted class for samples X as float as the average
+        of each tree votes. 
+
+        Parameters
+        ----------
+        X : ndarray with same shape as training data
+
+        Returns
+        -------
+        np.ndarray : array of predicted class as float.
+        """
+        return self._predict_proba(X)
+    
+    def out_of_bag(self, X, y):
+        """
+        Returns the out-of-bag accuracy of the Random Forest.
+
+        Parameters
+        ----------
+        X : ndarray of samples passed as training data
+        y : ndarray of target values passed as training data
+
+        Returns
+        -------
+        float : the score of the Random Forest classifier on 
+        the samples not bootstrapped during training
+        """
+
+        return self._out_of_bag(X,y)
