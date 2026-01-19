@@ -5,9 +5,11 @@ __pycache__/
 *.pyd
 .venv/
 .vscode/
+test_python.py
 
 # Build
 build/
+build_release/
 dist/
 doxygen/
 search/

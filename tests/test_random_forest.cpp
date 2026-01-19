@@ -110,3 +110,5 @@ TEST_CASE("RandomForest : out_of_bag error on empty data") {
 
     REQUIRE_THROWS_AS(forest.out_of_bag(empty), std::invalid_argument);
 }
+
+
