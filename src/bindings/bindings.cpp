@@ -191,7 +191,7 @@ PYBIND11_MODULE(arboria, m){
 
                     const size_t n_cols = xb.size;
                     const float* x_ptr = static_cast<float*>(xb.ptr);
-                    std::vector<const float> X_vec(x_ptr, x_ptr + n_cols);
+                    std::vector<float> X_vec(x_ptr, x_ptr + n_cols);
                     return self.predict_proba(X_vec);
                 }
 
@@ -201,7 +201,7 @@ PYBIND11_MODULE(arboria, m){
 
                     const float* x_ptr = static_cast<float*>(xb.ptr);
 
-                    std::vector<const float> X_vec(x_ptr, x_ptr+n_cols*n_rows);
+                    std::vector<float> X_vec(x_ptr, x_ptr+n_cols*n_rows);
                     return self.predict_proba(X_vec);
 
                 }
