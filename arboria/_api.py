@@ -1,6 +1,6 @@
 from ._arboria import DecisionTree as _DecisionTree
 from ._arboria import RandomForest as _RandomForest
-
+from ._arboria import _accuracy 
 
 
 class DecisionTree(_DecisionTree):
@@ -43,22 +43,29 @@ class DecisionTree(_DecisionTree):
 
 
 class RandomForest(_RandomForest):
-    def __init__(self, n_estimators, m_try, max_depth, seed = None):
+    def __init__(self, max_depth: int, max_features: int | str ="sqrt", n_estimators: int =70, seed : int | None = None):
         """
         Random Forest classifier.
 
         Parameters
         ----------
         n_estimators : int
-            Number of trees in the forest
-        m_try: int
-            Number of features to sample at each split
+            Number of trees in the forest. Default is 70
+        max_features: int | str
+            Number of features to sample at each split. Can be int or
+            "sqrt" : value set as the square root of the number of features.
         max_depth : int
             Maximum depth of the tree.
         seed : int
             Seed of the tree. Default None will result in a random seed.
         """
-        return super().__init__(n_estimators, m_try, max_depth, seed)
+        if max_features == "sqrt":
+            self.mtry = -99
+        elif max_features == "log":
+            self.mtry = -98
+        else:
+            self.mtry = max_features
+        return super().__init__(n_estimators, self.mtry, max_depth, seed)
 
     def fit(self, X, y, criterion= 'gini'):
         """
@@ -70,8 +77,9 @@ class RandomForest(_RandomForest):
         y : ndarray of shape (n_samples,)
         criterion : {"gini", "entropy"}, default="gini"
         """
-
-        return self._fit(X, y, criterion)
+        if self.mtry == -99:
+            self.mtry = int(X.shape[1]**0.5)
+        return self._fit(X, y, criterion, self.mtry)
     
     def predict(self, X):
         """
@@ -118,3 +126,20 @@ class RandomForest(_RandomForest):
         """
 
         return self._out_of_bag(X,y)
+
+
+def accuracy(y_true, y_pred):
+    """
+    Computes the accuracy score.
+
+    Parameters
+    ----------
+    y_true : ndarray of target classes
+    y_pred : ndarray of predicted classes
+
+    Returns
+    -------
+    float : the percentage of correct predictions.
+    """
+
+    return _accuracy(y_true, y_pred)

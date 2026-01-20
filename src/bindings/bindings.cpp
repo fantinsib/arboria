@@ -14,6 +14,7 @@
 #include "split_criterion/gini.h"
 #include "split_strategy/types/split_param.h"
 #include "tree/RandomForest/randomforest.h"
+#include "helpers/helpers.h"
 
 namespace py = pybind11;
 
@@ -128,7 +129,7 @@ PYBIND11_MODULE(_arboria, m){
             [](arboria::RandomForest& self, 
             py::array_t<float, py::array::c_style | py::array::forcecast> X,
             py::array_t<float, py::array::c_style | py::array::forcecast> y,
-            const std::string& criterion) {
+            const std::string& criterion, const int m_try) {
                 
         //Input checks
                 auto xb = X.request();
@@ -152,6 +153,8 @@ PYBIND11_MODULE(_arboria, m){
                 
                 SplitParam param;
                 param.criterion = crit;
+                param.f_selection = FeatureSelection::RandomK;
+                param.mtry = m_try;
 
                 const float* X_ptr = static_cast<float*>(xb.ptr);
                 const float* y_ptr = static_cast<float*>(yb.ptr);
@@ -163,7 +166,7 @@ PYBIND11_MODULE(_arboria, m){
                 self.fit(data, param);
             },
             
-            py::arg("X"), py::arg("y"), py::arg("criterion") = "gini"
+            py::arg("X"), py::arg("y"), py::arg("criterion") = "gini", py::arg("m_try")
         )
 
         .def("_predict", 
@@ -259,6 +262,26 @@ PYBIND11_MODULE(_arboria, m){
                 arboria::DataSet data(std::move(X_vec), std::move(y_vec), n_rows, n_cols);
                 return self.out_of_bag(data);
             }
+        
+        );
+
+
+        m.def("_accuracy", 
+        [](py::array_t<int, py::array::c_style | py::array::forcecast> y_true,
+        py::array_t<int, py::array::c_style | py::array::forcecast> y_pred){
+
+            if (y_true.ndim() != 1 || y_pred.ndim() != 1) throw std::invalid_argument("accuracy : passed argument must be a 1D array");
+            auto a = y_true.unchecked<1>();
+            auto b = y_pred.unchecked<1>();
+
+            return arboria::helpers::accuracy(
+                std::span<const int>(a.data(0), a.shape(0)),
+                std::span<const int>(b.data(0), b.shape(0))
+            );
+
+
+        }
+        
         
         );
 

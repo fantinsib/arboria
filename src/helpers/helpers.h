@@ -98,6 +98,18 @@ inline std::pair<int, int> count_classes(std::span<const int> idx, const std::ve
 
 }
 
+inline float accuracy(const std::span<const int> a, const std::span<const int> b){
+
+    const size_t n = a.size();
+    if (n != b.size()) throw std::invalid_argument("arboria::helpers::accuracy : passed arguments have different lenght");
+    if (n == 0) throw std::invalid_argument("arboria::helpers::accuracy : passed arguments are empty");
+    size_t equal_count = 0;
+    for (size_t i = 0; i < a.size(); i++){
+        equal_count += (a[i]==b[i]);
+    }
+    return static_cast<float>(equal_count)/static_cast<float>(a.size());
+
+}
 
 }
 }

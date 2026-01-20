@@ -31,8 +31,13 @@ RandomForest::RandomForest(int n_estimators_, int mtry_, int max_depth_, std::op
     mtry(mtry_),
     max_depth(max_depth_)
 {
+    //mtry == -99 : auto (sqrt)
+    //mtry == -98 : auto (log)
 
-    if (mtry <= 0) throw std::invalid_argument("arboria::tree::RandomForest : mtry argument must be greater than or equal 0");
+    if (mtry <= 0 && mtry != -99 && mtry != -98) {
+        std::cout<< mtry<< std::endl; 
+        throw std::invalid_argument("arboria::tree::RandomForest : mtry argument must be greater than or equal 0");
+    }
     if (n_estimators <= 0) throw std::invalid_argument("arboria::tree::RandomForest : n_estimators argument must be greater than or equal 0");
     if (max_depth_ <= 0) throw std::invalid_argument("arboria::tree::RandomForest : max_depth argument must be greater than or equal 0");
 
@@ -154,7 +159,12 @@ void RandomForest::fit_(const DataSet& data, const SplitParam &param, SplitConte
 
     const size_t n_rows = static_cast<size_t>(data.n_rows());
     const size_t n_cols = static_cast<size_t>(data.n_cols());
-    if (n_cols < mtry) throw std::invalid_argument("arboria::tree::RandomForest::fit : mtry parameter can't be larger than the number of features in the dataset");
+    mtry = param.mtry;
+    if (n_cols < mtry) {
+        std::cout << "Received mtry : " << mtry << std::endl;
+        throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter can't be larger than the number of features in the dataset");
+    }
+    if (mtry <= 0) throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter can't be negative");
 
     num_features = data.n_cols();
     trees.clear();

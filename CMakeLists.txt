@@ -62,7 +62,7 @@ target_link_libraries(_arboria PRIVATE arboria_lib)
 target_compile_features(_arboria PRIVATE cxx_std_20)
 
 # ---- Tests ----
-option(ARBORIA_BUILD_TESTS "Build tests" OFF)
+option(ARBORIA_BUILD_TESTS "Build tests" ON)
 if (ARBORIA_BUILD_TESTS)
   add_subdirectory(tests)
 endif()

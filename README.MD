@@ -16,7 +16,7 @@ This version currently supports :
 
 
 #### `RandomForest` (binary classification)
-- `.fit`: fits a RandomForest with `n_estimators` trees. Uses RandomK feature selection (`m_try` features). Supports reproducible randomness via `seed`.
+- `.fit`: fits a RandomForest with `n_estimators` trees. Uses RandomK feature selection (`max_features` features). Supports reproducible randomness via `seed`.
 - `.predict` / `.predict_proba`: predicts classes or returns average votes across trees
 - `.out_of_bag`: returns accuracy on training samples not bootstrapped during training
 
@@ -52,7 +52,7 @@ from arboria import DecisionTree, RandomForest
 
 ````python
 tree = DecisionTree(max_depth = 5)
-rf = RandomForest(n_estimators = 30, m_try = 5, max_depth = 5, seed = 10)
+rf = RandomForest(n_estimators = 30, max_features = "sqrt", max_depth = 5, seed = 10)
 ````
 
 ### Fit
