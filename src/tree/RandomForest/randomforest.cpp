@@ -60,7 +60,7 @@ void RandomForest::fit(const DataSet &data, const SplitParam& params){
     fitted = true;
     num_features = data.n_cols();
 }
-
+/*
 void RandomForest::fit(const DataSet &data){
 
     SplitParam params; 
@@ -74,7 +74,7 @@ void RandomForest::fit(const DataSet &data){
     fitted = true;
     num_features = data.n_cols();
 }
-
+*/
 std::vector<float> RandomForest::predict_proba(std::span<const float> samples) const{
     if (!fitted || num_features == 0) throw std::invalid_argument("arboria::RandomForest::predict_proba -> RandomForest has not been fitted");
     if (trees.size() < 1) throw std::logic_error("arboria::RandomForest::predict_proba -> no trees were found in the forest");
@@ -159,7 +159,7 @@ void RandomForest::fit_(const DataSet& data, const SplitParam &param, SplitConte
 
     const size_t n_rows = static_cast<size_t>(data.n_rows());
     const size_t n_cols = static_cast<size_t>(data.n_cols());
-    mtry = param.mtry;
+    int mtry = std::get<RandomK>(param.f_selection).mtry;
     if (n_cols < mtry) {
         std::cout << "Received mtry : " << mtry << std::endl;
         throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter can't be larger than the number of features in the dataset");

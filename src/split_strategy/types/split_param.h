@@ -1,8 +1,37 @@
 #pragma once
+#include <variant>
+#include <cstddef>
 
-enum class Criterion { Gini, Entropy };
-enum class ThresholdComputation { CART, Random, Quantile };
-enum class FeatureSelection { All, RandomK };
+//--------------------- FeatureSelection
+
+//Searches all features during split
+struct AllFeatures {};
+
+//Searches only mtry features at each split
+struct RandomK{
+    int mtry = -1; 
+};
+
+using FeatureSelection = std::variant<AllFeatures, RandomK>;
+
+//-------------------- ThresholdComputation
+
+//Computes the threshold according to regular CART algorithm
+struct CART{};
+struct Random{};
+struct Quantile{};
+
+using ThresholdComputation = std::variant<CART, Random, Quantile>;
+
+//------------------ Criterion
+
+//Uses Gini as impurity parameter
+struct Gini {};
+//Uses Entropy as impurity parameter
+struct Entropy{};
+
+using Criterion = std::variant<Gini, Entropy>;
+
 /**
  * @brief struct controlling the policy of the split (split logic)
  *
@@ -15,10 +44,8 @@ enum class FeatureSelection { All, RandomK };
  */
 struct SplitParam {
 
-    Criterion criterion = Criterion::Gini;
-    ThresholdComputation t_comp = ThresholdComputation::CART;
-    FeatureSelection f_selection = FeatureSelection::All;
-
-    int mtry = -1; // used only if f_selection is RandomK 
+    Criterion criterion;
+    ThresholdComputation t_comp;
+    FeatureSelection f_selection;
 
 };

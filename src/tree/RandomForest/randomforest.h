@@ -8,6 +8,8 @@
 #include "dataset/dataset.h"
 #include "split_strategy/types/split_param.h"
 #include "tree/DecisionTree/DecisionTree.h"
+#include "tree/TreeModel.h"
+
 #include <optional>
 #include <vector>
 #include <span>
@@ -133,7 +135,7 @@ class RandomForest{
     void set_seed(uint32_t user_seed);
 
     //Returns the number of sampled feature at each node
-    int get_mtry() const {return mtry;}
+    int get_max_features() const {return mtry;}
     
     //returns the number of trees used for fitting
     int get_estimators() const {return n_estimators;}

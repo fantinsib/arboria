@@ -21,6 +21,7 @@ add_library(arboria_lib
     src/split_strategy/feature_selection/randomK/randomK.cpp
     src/split_strategy/sampling/sampling.cpp
     src/tree/RandomForest/randomforest.cpp
+    src/split_strategy/types/ParamBuilder/ParamBuilder.cpp
 )
 
 target_include_directories(arboria_lib PUBLIC

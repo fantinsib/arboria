@@ -12,6 +12,7 @@
 #include <numeric>
 #include <random>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 #include <span>
 
@@ -28,7 +29,7 @@ Splitter::Splitter() {};
 
 SplitResult Splitter::best_split(std::span<const int> idx, const DataSet &data, const SplitParam &params){
     
-    if (params.f_selection == FeatureSelection::RandomK) throw std::invalid_argument("aboria::split_strategy::Splitter::best_split : incompatible parameters and context for split - RNG must be passed if RandomK used");
+    if (std::holds_alternative<RandomK>(params.f_selection)) throw std::invalid_argument("aboria::split_strategy::Splitter::best_split : incompatible parameters and context for split - RNG must be passed if RandomK used");
     SplitContext context(0u);
     return best_split(idx, data, params, context);
 };
@@ -54,24 +55,30 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
 // -> filling col_vector with col index
 
     std::vector<int> features; 
-    switch (params.f_selection) {
-        case FeatureSelection::All :
+    std::visit([&](const auto& feature_selec) {
+        
+        using T = std::decay_t<decltype(feature_selec)>;
+
+        if constexpr ((std::is_same_v<T, AllFeatures>)){
             features.resize(num_features);
             std::iota(features.begin(), features.end(), 0);
-            break;
+            
+            }
         
-        case FeatureSelection::RandomK : {
-            if (params.mtry <= 0) {throw std::logic_error("arboria::split_strategy_Splitter::best_split : number of sampled features for RandomK must be positive");}
-            if (params.mtry > num_features) {throw std::logic_error("arboria::split_strategy_Splitter::best_split : mtry parameter can't be larger than number of features");}
+        else if constexpr ((std::is_same_v<T, RandomK>)) {
+            auto* rk = std::get_if<RandomK>(&params.f_selection);
+            int mtry = rk->mtry;
+            if (mtry <= 0) {throw std::logic_error("arboria::split_strategy_Splitter::best_split : number of sampled features for RandomK must be positive");}
+            if (mtry > num_features) {throw std::logic_error("arboria::split_strategy_Splitter::best_split : mtry parameter can't be larger than number of features");}
             std::vector<int> all_features (num_features);
             std::iota(all_features.begin(), all_features.end(), 0);
-            features = randomK(all_features, params.mtry, context.rng);
-            break;
-            };
+            features = randomK(all_features, mtry, context.rng);
             
-        default: throw std::logic_error("aboria::split_strategy::Splitter::best_split : feature selection parameter is not recognized");
+            }
+            
+        else throw std::logic_error("aboria::split_strategy::Splitter::best_split : feature selection parameter is not recognized");
         
-    }
+    }, params.f_selection);
 
 // ------------------------------------ loop over the features -----------------
 
@@ -80,24 +87,25 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
 // ------------------------------------ threshold computation -----------------
 
         std::vector<float> thresholds;
-        switch (params.t_comp) {
-            case ThresholdComputation::CART :
+        std::visit([&](const auto& t_compute) {
+            using T=std::decay_t<decltype(t_compute)>;
+
+            if constexpr ((std::is_same_v<T, CART>)) {
                 thresholds = cart_threshold(idx, col, data);
-                break;
+            }
 
-            case ThresholdComputation::Random :
+            else if constexpr ((std::is_same_v<T, Random>)){
                 throw std::logic_error("Not yet implemented");
             // to implement
-                break;
+            }
             
-            case ThresholdComputation::Quantile :
+            else if constexpr (std::is_same_v<T, Quantile>) {
                 throw std::logic_error("Not yet implemented");
             // to implement
-                break;
-
+            }
             
-            default : throw std::logic_error("aboria::split_strategy::Splitter::best_split : threshold computation parameter is not recognized");
-        }
+            else throw std::logic_error("aboria::split_strategy::Splitter::best_split : threshold computation parameter is not recognized");
+        }, params.t_comp);
 
         for (float t : thresholds) { //iteration through the thresholds 
             // Current version -> naive count for each leaf. 
@@ -147,15 +155,18 @@ float Splitter::score_function(const SplitParam& params, const SplitStats& stats
 // ------------------------------------ score function -----------------
 
     //score_function depending on the param passed (Gini by default)
-    switch (params.criterion) {
-        case Criterion::Gini : //default criterion
-            return split::weighted_gini(stats.l_pos, stats.l_neg, stats.r_pos, stats.r_neg);
+    return std::visit([&](const auto& crit_function) {
+        using T = std::decay_t<decltype(crit_function)>;
+
+
+        if constexpr ((std::is_same_v<T, Gini>)) {
+            return split::weighted_gini(stats.l_pos, stats.l_neg, stats.r_pos, stats.r_neg);}
          
-        case Criterion::Entropy :
-            return split::weighted_entropy(stats.l_pos, stats.l_neg, stats.r_pos, stats.r_neg);
+        else if constexpr (std::is_same_v<T, Entropy>) {
+            return split::weighted_entropy(stats.l_pos, stats.l_neg, stats.r_pos, stats.r_neg);}
     
-        default : throw std::logic_error("arboria::split_strategy::Splitter::score_function : no scoring criterion was passed.");
-        }
+        else throw std::logic_error("arboria::split_strategy::Splitter::score_function : no scoring criterion was passed.");
+        }, params.criterion);
 
     
 

@@ -2,6 +2,7 @@ from ._arboria import DecisionTree as _DecisionTree
 from ._arboria import RandomForest as _RandomForest
 from ._arboria import _accuracy 
 
+import math
 
 class DecisionTree(_DecisionTree):
     def __init__(self, max_depth: int):
@@ -78,7 +79,9 @@ class RandomForest(_RandomForest):
         criterion : {"gini", "entropy"}, default="gini"
         """
         if self.mtry == -99:
-            self.mtry = int(X.shape[1]**0.5)
+            self.mtry = max(1, int(math.sqrt(X.shape[1])))
+        if self.mtry == -98:
+            self.mtry = max(1, int(math.log2(X.shape[1])))
         return self._fit(X, y, criterion, self.mtry)
     
     def predict(self, X):

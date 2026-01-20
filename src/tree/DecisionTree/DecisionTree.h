@@ -8,7 +8,7 @@
 #include "split_strategy/splitter.h"
 #include "helpers/helpers.h"
 #include "split_strategy/types/split_context.h"
-
+#include "tree/TreeModel.h"
 
 using arboria::split_strategy::Splitter;
 using arboria::helpers::count_classes;

@@ -11,14 +11,17 @@
 #include "split_criterion/gini.h"
 #include "split_strategy/splitter.h"
 #include "dataset/dataset.h"
+#include "split_strategy/types/ParamBuilder/ParamBuilder.h"
 #include "split_strategy/types/split_param.h"
 #include "split_strategy/types/split_result.h"
 #include "split_strategy/types/split_context.h"
+
 
 using arboria::split_strategy::Splitter;
 using arboria::DataSet;
 using arboria::split::weighted_gini;
 using arboria::split::weighted_entropy;
+using arboria::ParamBuilder;
 
 /*
 
@@ -40,7 +43,7 @@ TEST_CASE("best_split : basic usage with perfect split - Gini") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param; //default param : Gini, CART, all features
+    SplitParam param{Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -68,7 +71,7 @@ TEST_CASE("best_split : basic usage with unperfect split - Gini") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param; //default param : Gini, CART, all features
+    SplitParam param{Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -91,7 +94,7 @@ TEST_CASE("best_split : basic usage with perfect split - Entropy") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Criterion::Entropy, ThresholdComputation::CART, FeatureSelection::All};
+    SplitParam param{Entropy{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -120,7 +123,7 @@ TEST_CASE("best_split : basic usage with unperfect split - Entropy") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Criterion::Entropy, ThresholdComputation::CART, FeatureSelection::All}; //default param : Gini, CART, all features
+    SplitParam param{Entropy{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -144,7 +147,7 @@ TEST_CASE("best_split : basic usage with no split") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Criterion::Entropy, ThresholdComputation::CART, FeatureSelection::All}; //default param : Gini, CART, all features
+    SplitParam param{Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -165,7 +168,7 @@ TEST_CASE("best_split : basic usage with row selection") {
     std::vector<int> rows {0,2};
     std::span s(rows);
 
-    SplitParam param; //default param : Gini, CART, all features
+    SplitParam param{Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -187,7 +190,7 @@ TEST_CASE("best_split : basic usage with row in random order") {
     std::vector<int> rows {3,0,2,1};
     std::span s(rows);
 
-    SplitParam param; //default param : Gini, CART, all features
+    SplitParam param{Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -210,7 +213,7 @@ TEST_CASE("best_split : basic usage with duplicate rows") {
     std::vector<int> rows {0,0,0,2};
     std::span s(rows);
 
-    SplitParam param; //default param : Gini, CART, all features
+    SplitParam param{Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -231,7 +234,7 @@ TEST_CASE("best_split : no split when 1 sample") {
     std::vector<int> rows {0};
     std::span s(rows);
 
-    SplitParam param; //default param : Gini, CART, all features
+    SplitParam param{Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -257,7 +260,7 @@ TEST_CASE("best_split : errors - empty data") {
     std::vector<int> rows {0,0,0,2};
     std::span s(rows);
 
-    SplitParam param; //default param : Gini, CART, all features
+    SplitParam param{Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param), std::invalid_argument);
@@ -274,7 +277,7 @@ TEST_CASE("best_split : errors - empty idx") {
     std::vector<int> rows {};
     std::span s(rows);
 
-    SplitParam param; //default param : Gini, CART, all features
+    SplitParam param{Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param), std::invalid_argument);
@@ -303,9 +306,7 @@ TEST_CASE("best_split + randomk : basic usage with span overload") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param;
-    param.f_selection = FeatureSelection::RandomK;
-    param.mtry = 2;
+    SplitParam param{Gini{}, CART{}, RandomK{2}};
 
     Splitter splitter;
 
@@ -329,9 +330,7 @@ TEST_CASE("best_split + randomk : reproductibility") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param;
-    param.f_selection = FeatureSelection::RandomK;
-    param.mtry = 2;
+    SplitParam param{Gini{}, CART{}, RandomK{2}};
 
     Splitter splitter;
 
@@ -358,9 +357,8 @@ TEST_CASE("best_split + randomk : mtry == num_features") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param;
-    param.f_selection = FeatureSelection::RandomK;
-    param.mtry = 3;
+    SplitParam param{Gini{}, CART{}, RandomK{3}};
+
 
     Splitter splitter;
 
@@ -384,9 +382,8 @@ TEST_CASE("best_split + randomk : errors - called w/o context") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param;
-
-    param.f_selection = FeatureSelection::RandomK; //pick randomK but omit SplitContext with RNG
+    SplitParam param{Gini{}, CART{}, RandomK{}};
+    //pick randomK but omit SplitContext with RNG
     Splitter splitter;
 
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param), std::invalid_argument);
@@ -406,25 +403,21 @@ TEST_CASE("best_split + randomk : errors - mtry illegal") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param;
     SplitContext ctx(1);
-    param.f_selection = FeatureSelection::RandomK;
-    
-
     Splitter splitter;
 
     SECTION("mtry == 0"){
-    param.mtry = 0;
+    SplitParam param{Gini{}, CART{}, RandomK{0}};
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param, ctx), std::logic_error);
     }
 
     SECTION("mtry < 0"){
-    param.mtry = -2;
+    SplitParam param{Gini{}, CART{}, RandomK{-2}};
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param, ctx), std::logic_error);
     }
 
     SECTION("mtry > num_features"){
-    param.mtry = 4;
+    SplitParam param{Gini{}, CART{}, RandomK{4}};
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param, ctx), std::logic_error);
     }
 

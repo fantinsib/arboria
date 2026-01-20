@@ -2,6 +2,7 @@
         BINDINGS IMPLEMENTATION
 */
 
+#include <__ranges/concepts.h>
 #include <optional>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -13,10 +14,12 @@
 #include "split_criterion/entropy.h"
 #include "split_criterion/gini.h"
 #include "split_strategy/types/split_param.h"
+#include "split_strategy/types/ParamBuilder/ParamBuilder.h"
 #include "tree/RandomForest/randomforest.h"
 #include "helpers/helpers.h"
 
 namespace py = pybind11;
+using arboria::ParamBuilder;
 
 PYBIND11_MODULE(_arboria, m){
 
@@ -28,9 +31,8 @@ PYBIND11_MODULE(_arboria, m){
          py::array_t<float, py::array::c_style | py::array::forcecast> X,
         py::array_t<float, py::array::c_style | py::array::forcecast> y,
         const std::string& criterion)
-    {
-                
-        //Input checks
+    {       
+    //----------------------Input checks
                 auto xb = X.request();
                 if (xb.ndim != 2) {
                     throw std::runtime_error("X must be a 2D numpy array.");
@@ -44,15 +46,7 @@ PYBIND11_MODULE(_arboria, m){
                 if ((size_t)yb.shape[0] != n_rows) {
                     throw std::runtime_error("y length must match X.shape[0].");
                 }
-                
-                Criterion crit;
-                if (criterion == "gini") crit = Criterion::Gini;
-                else if (criterion == "entropy") crit = Criterion::Entropy;
-                else throw std::runtime_error("Unknown split criterion passed to fit.");
-                
-                SplitParam param;
-                param.criterion = crit;
-
+    //----------------------DataSet build
                 const float* X_ptr = static_cast<const float*>(xb.ptr);
                 const float* y_ptr = static_cast<const float*>(yb.ptr);
 
@@ -60,6 +54,26 @@ PYBIND11_MODULE(_arboria, m){
                 std::vector<float> y_vec(y_ptr, y_ptr + n_rows);
 
                 arboria::DataSet data(std::move(X_vec), std::move(y_vec), n_rows, n_cols);
+
+
+    //----------------------Param Build
+                //----------Criterion
+                Criterion crit;
+                if (criterion == "gini") crit = Gini{};
+                else if (criterion == "entropy") crit = Entropy{};
+                else throw std::runtime_error("Unknown split criterion passed to fit.");
+
+                //----------Threshold
+                ThresholdComputation threshold = CART{};
+                //----------Feature
+                FeatureSelection feature = AllFeatures{};
+
+                SplitParam param = ParamBuilder(TreeModel::DecisionTree, 
+                    crit, 
+                    threshold , 
+                    feature);
+            
+
                 self.fit(data, param);
             },
             
@@ -131,7 +145,7 @@ PYBIND11_MODULE(_arboria, m){
             py::array_t<float, py::array::c_style | py::array::forcecast> y,
             const std::string& criterion, const int m_try) {
                 
-        //Input checks
+//----------------------Input Checks 
                 auto xb = X.request();
                 if (xb.ndim != 2) {
                     throw std::runtime_error("X must be a 2D numpy array.");
@@ -140,21 +154,32 @@ PYBIND11_MODULE(_arboria, m){
                 if (yb.ndim != 1) {
                     throw std::runtime_error("y must be a 1D numpy array.");
                 }
+                
+//----------------------Param Build
+
+
+                //----------Criterion
+                Criterion crit;
+                if (criterion == "gini") crit = Gini{};
+                else if (criterion == "entropy") crit = Entropy{};
+                else throw std::runtime_error("Unknown split criterion passed to fit.");
+
+                //----------Threshold
+                ThresholdComputation threshold = CART{};
+                //----------Feature
+                FeatureSelection feature = RandomK{m_try};
+
+                SplitParam param = ParamBuilder(TreeModel::DecisionTree, 
+                    crit, 
+                    threshold , 
+                    feature);
+            
+//----------------------DataSet Build
                 const size_t n_rows = static_cast<size_t>(xb.shape[0]);
                 const size_t n_cols = static_cast<size_t>(xb.shape[1]);
                 if ((size_t)yb.shape[0] != n_rows) {
                     throw std::runtime_error("y length must match X.shape[0].");
                 }
-                
-                Criterion crit;
-                if (criterion == "gini") crit = Criterion::Gini;
-                else if (criterion == "entropy") crit = Criterion::Entropy;
-                else throw std::runtime_error("Unknown split criterion passed to fit.");
-                
-                SplitParam param;
-                param.criterion = crit;
-                param.f_selection = FeatureSelection::RandomK;
-                param.mtry = m_try;
 
                 const float* X_ptr = static_cast<float*>(xb.ptr);
                 const float* y_ptr = static_cast<float*>(yb.ptr);

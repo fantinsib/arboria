@@ -9,10 +9,14 @@
 #include <vector>
 
 #include "dataset/dataset.h"
+#include "split_strategy/types/split_param.h"
 #include "tree/RandomForest/randomforest.h"
+#include "split_strategy/types/ParamBuilder/ParamBuilder.h"
+#include "tree/TreeModel.h"
 
 using arboria::DataSet;
 using arboria::RandomForest;
+using arboria::ParamBuilder;
 
 namespace {
 
@@ -40,12 +44,14 @@ TEST_CASE("RandomForest : constructor validation") {
 TEST_CASE("RandomForest : fit then predict basic usage") {
     DataSet data = make_separable_dataset();
 
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+
     RandomForest forest(25, 2, 4, 123);
-    forest.fit(data);
+    forest.fit(data, param);
 
     REQUIRE(forest.is_fitted() == true);
     REQUIRE(forest.get_estimators() == 25);
-    REQUIRE(forest.get_mtry() == 2);
+    REQUIRE(forest.get_max_features() == 2);
     REQUIRE(forest.get_max_depth() == 4);
 
     std::vector<float> samples{
@@ -76,7 +82,8 @@ TEST_CASE("RandomForest : predict error before fit") {
 TEST_CASE("RandomForest : predict_proba error on wrong dimension") {
     DataSet data = make_separable_dataset();
     RandomForest forest(5, 2, 3, 7);
-    forest.fit(data);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+    forest.fit(data, param);
 
     std::vector<float> bad_samples{0, 0, 0, 1};
     REQUIRE_THROWS_AS(forest.predict_proba(bad_samples), std::invalid_argument);
@@ -85,14 +92,18 @@ TEST_CASE("RandomForest : predict_proba error on wrong dimension") {
 TEST_CASE("RandomForest : mtry larger than feature count") {
     DataSet data = make_separable_dataset();
     RandomForest forest(5, 10, 3, 7);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{10});
 
-    REQUIRE_THROWS_AS(forest.fit(data), std::invalid_argument);
+
+    REQUIRE_THROWS_AS(forest.fit(data, param), std::invalid_argument);
 }
 
 TEST_CASE("RandomForest : out_of_bag basic range") {
     DataSet data = make_separable_dataset();
     RandomForest forest(20, 2, 4, 123);
-    forest.fit(data);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+
+    forest.fit(data, param);
 
     float score = forest.out_of_bag(data);
     REQUIRE(score >= 0.0f);
@@ -102,7 +113,9 @@ TEST_CASE("RandomForest : out_of_bag basic range") {
 TEST_CASE("RandomForest : out_of_bag error on empty data") {
     DataSet data = make_separable_dataset();
     RandomForest forest(5, 2, 3, 7);
-    forest.fit(data);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+
+    forest.fit(data, param);
 
     std::vector<float> empty_x;
     std::vector<float> empty_y;
