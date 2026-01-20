@@ -4,7 +4,7 @@
 #include "split_strategy/types/split_param.h"
 #include "tree/TreeModel.h"
 #include "tree/RandomForest/randomforest.h"
-#include "tree/DecisionTree/decisiontree.h"
+#include "tree/DecisionTree/DecisionTree.h"
 #include "ParamBuilder.h"
 #include <optional>
 #include <stdexcept>
