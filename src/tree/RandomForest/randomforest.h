@@ -174,7 +174,7 @@ class RandomForest{
     int num_features;
     //seed : can be specified by the user (at declaration or via .set_seed()). Otherwise, 
     // is set by std::random_devices
-    std::optional<uint32_t> seed_;
+    std::optional<std::uint32_t> seed_;
     std::vector<ForestTree> trees;
 
 };

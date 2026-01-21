@@ -9,6 +9,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 #include <stdexcept>
+#include <cstdint>
 
 #include "dataset/dataset.h"
 #include "tree/DecisionTree/DecisionTree.h"

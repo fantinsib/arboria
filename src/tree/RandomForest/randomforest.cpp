@@ -14,7 +14,7 @@
 #include "tree/DecisionTree/DecisionTree.h"
 
 
-#include <_types/_uint32_t.h>
+#include <cstdint>
 #include <algorithm>
 #include <cstdint>
 #include <cstddef>
@@ -29,7 +29,7 @@ using arboria::ForestTree;
 
 namespace arboria{
 
-RandomForest::RandomForest(HyperParam hyperParam, std::optional<uint32_t> user_seed)
+RandomForest::RandomForest(HyperParam hyperParam, std::optional<std::uint32_t> user_seed)
 {
 
     if (hyperParam.n_estimators.has_value()) {
@@ -57,7 +57,7 @@ RandomForest::RandomForest(HyperParam hyperParam, std::optional<uint32_t> user_s
     trees.reserve(static_cast<size_t>(n_estimators));
     if (!user_seed){
         std::random_device rd;
-        seed_ = static_cast<uint32_t>(rd());
+        seed_ = static_cast<std::uint32_t>(rd());
     }
     else{seed_ = user_seed.value();}
 }
