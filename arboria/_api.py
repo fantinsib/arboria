@@ -53,9 +53,10 @@ class DecisionTree(_DecisionTree):
 
 
 class RandomForest(_RandomForest):
-    def __init__(self, max_depth: int = None, 
+    def __init__(self, n_estimators: int = 70,
                  max_features: int | str ="sqrt", 
-                 n_estimators: int = 70, 
+                 max_depth: int = None, 
+                 max_samples: float = None,
                  seed : int | None = None):
         """
         Random Forest classifier.
@@ -69,6 +70,8 @@ class RandomForest(_RandomForest):
             "sqrt" : value set as the square root of the number of features.
         max_depth : int
             Maximum depth of the tree. Default is None
+        max_samples: float 
+            Percentage of samples to be boostratpped in each tree.
         seed : int
             Seed of the tree. Default None will result in a random seed.
         """
@@ -78,7 +81,7 @@ class RandomForest(_RandomForest):
             self.mtry = -98
         else:
             self.mtry = max_features
-        return super().__init__(n_estimators, self.mtry, max_depth, seed)
+        return super().__init__(n_estimators = n_estimators, m_try = self.mtry,max_depth= max_depth, max_samples = max_samples, seed= seed)
 
     def fit(self, X, y, criterion= 'gini'):
         """
@@ -157,6 +160,10 @@ class RandomForest(_RandomForest):
             raise TypeError("y must be a NumPy-compatible array")
         
         return self._out_of_bag(X,y)
+    
+    def get_max_samples(self):
+
+        return self._get_max_samples()
 
 
 def accuracy(y_true, y_pred):

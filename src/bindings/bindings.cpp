@@ -2,6 +2,7 @@
         BINDINGS IMPLEMENTATION
 */
 
+#include <pybind11/pytypes.h>
 #include <ranges>
 #include <concepts>
 #include <optional>
@@ -145,20 +146,22 @@ PYBIND11_MODULE(_arboria, m){
         .def(py::init([](std::optional<int> n_estimators,
                         std::optional<int> m_try,
                         std::optional<int> max_depth, 
+                        std::optional<float> max_samples, 
                         std::optional<std::uint32_t> seed)
                         {        
                         HyperParam hp;
                         hp.n_estimators = n_estimators;
                         hp.mtry = m_try; // value always set during Python init ; must be passed
+                        hp.max_samples = max_samples;
                         if (max_depth.has_value()) {
                             hp.max_depth= max_depth;}
-                        
 
                         return std::make_unique<arboria::RandomForest>(hp, seed);}
                     ),
             py::arg("n_estimators"), 
             py::arg("m_try"),
             py::arg("max_depth") = std::nullopt,
+            py::arg("max_samples") = std::nullopt,
             py::arg("seed") = std::nullopt
     )
 
@@ -311,6 +314,14 @@ PYBIND11_MODULE(_arboria, m){
                 return self.out_of_bag(data);
             }
         
+        )
+
+        .def("_get_max_samples",
+            [](const arboria::RandomForest& rf) -> py::object {
+            auto d = rf.get_max_samples();
+            if (d.has_value()) return py::float_(static_cast<double>(*d));
+            return py::none();
+        }
         );
 
 

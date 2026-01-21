@@ -61,6 +61,25 @@ def test_random_forest_reproductible():
 
     assert (accuracy(prob1, prob2)==1)
 
+def test_random_forest_max_samples():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import train_test_split
 
+    bc = load_breast_cancer()
+    X = bc.data.astype(np.float32)  
+    y = bc.target.astype(np.int32) 
+    x_train, x_test, y_train, y_test = train_test_split(X,y, random_state=10)
 
+    rf1 = RandomForest(max_samples=1.2, max_depth=6, seed = 10)
+    rf2 = RandomForest(max_samples = 0.1, max_depth =6, seed = 10)
 
+    rf1.fit(x_train, y_train, criterion="entropy")
+    rf2.fit(x_train, y_train, criterion="entropy")
+
+    assert(round(rf1.get_max_samples(),2) == 1.2)
+    assert(round(rf2.get_max_samples(),2) == 0.1)
+
+    prob1 = rf1.predict_proba(x_test)
+    prob2 = rf2.predict_proba(x_test)
+
+    assert (prob1 != prob2)

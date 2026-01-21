@@ -4,7 +4,9 @@
 
 */
 
+
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 #include <stdexcept>
 #include <vector>
 
@@ -159,3 +161,17 @@ TEST_CASE("RandomForest : out_of_bag error on empty data") {
 }
 
 
+TEST_CASE("RandomForest : max_samples"){
+
+    DataSet data = make_separable_dataset();
+    float max_sample = 0.2;
+    HyperParam h_param{2, 3, 4, max_sample};
+    RandomForest forest(h_param, 123);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+
+    forest.fit(data, param);
+
+    std::optional<float> m_samples = forest.get_max_samples();
+
+    REQUIRE( m_samples.value() == Catch::Approx(max_sample));
+}

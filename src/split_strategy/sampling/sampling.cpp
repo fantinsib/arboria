@@ -13,7 +13,14 @@
 namespace arboria{
 namespace sampling{
 
-
+/**
+ * @brief Bootstrapps samples. 
+ * 
+ * @param s_size Vector size ; sampling will be done for index in [0, s_size-1]
+ * @param n_samples Number of samples to draw
+ * @param rng Random number generator
+ * @return std::vector<size_t> 
+ */
 std::vector<size_t> bootstrap(size_t s_size, size_t n_samples, std::mt19937& rng){
 
     if (s_size == 0) throw std::invalid_argument("arboria::sampling::bootstrap : number of samples must be superior to zero");

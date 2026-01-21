@@ -13,7 +13,7 @@
 #include "split_strategy/types/split_hyper.h"
 #include "tree/DecisionTree/DecisionTree.h"
 
-
+#include <iostream>
 #include <cstdint>
 #include <algorithm>
 #include <cstdint>
@@ -50,8 +50,13 @@ RandomForest::RandomForest(HyperParam hyperParam, std::optional<std::uint32_t> u
     else throw std::logic_error("RandomForest Init : No value received for mtry.");
 
     if (hyperParam.max_depth.has_value()) {
-        if (*hyperParam.max_depth <= 0) throw std::invalid_argument("arboria::tree::RandomForest : max_depth argument must be greater than or equal 0");
+        if (*hyperParam.max_depth <= 0) throw std::invalid_argument("arboria::tree::RandomForest : max_depth argument must be greater than 0");
         max_depth = *hyperParam.max_depth;
+    }
+
+    if (hyperParam.max_samples.has_value()){
+        if (*hyperParam.max_samples <= 0) throw std::invalid_argument("arboria::tree::RandomForest : max_samples argument must be greater than 0");
+        max_samples = *hyperParam.max_samples;
     }
 
     trees.reserve(static_cast<size_t>(n_estimators));
@@ -187,15 +192,17 @@ void RandomForest::fit_(const DataSet& data, const SplitParam &param, SplitConte
     if (n_cols < mtry) {
         throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter can't be larger than the number of features in the dataset");
     }
-    //to del
-    if (mtry <= 0) throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter can't be negative");
 
+
+
+    size_t bootstrap_size = max_samples.has_value() ? static_cast<size_t>(
+            static_cast<double>(max_samples.value()) * static_cast<double>(n_rows)) :  n_rows;
     num_features = data.n_cols();
     trees.clear();
     trees.reserve(static_cast<size_t>(n_estimators));
     for (int i = 0; i < n_estimators; i++){ //per tree
         //Bootstrapping of dataset rows :
-        std::vector<size_t> boostrapped_indices = bootstrap(n_rows, static_cast<size_t>(n_rows), context.rng);
+        std::vector<size_t> boostrapped_indices = bootstrap(static_cast<size_t>(n_rows), bootstrap_size, context.rng);
         //TODO : temporary conversion size_t -> int for
         // passing from bootstrap to DecisionTree.fit(); 
         // to delete when all ref to indices will be in size_t

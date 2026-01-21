@@ -142,9 +142,13 @@ class RandomForest{
     int get_estimators() const {return n_estimators;}
 
     //Returns the max depth of the trees of the forest
-    int get_max_depth() const {
+    std::optional<int> get_max_depth() const {
         if (max_depth.has_value()) return max_depth.value();
-            else return 0;}
+            else return std::nullopt;}
+
+    std::optional<float> get_max_samples() const {
+        if (max_samples.has_value()) return max_samples.value();
+            else return std::nullopt;}
 
     private:
     //Number of features to be sampled at each split 
@@ -153,6 +157,7 @@ class RandomForest{
     int n_estimators; 
     //Max depth of each tree
     std::optional<int> max_depth; 
+    std::optional<float> max_samples;
 
     /**
     * @brief Private method used to fit the RandomForest.
