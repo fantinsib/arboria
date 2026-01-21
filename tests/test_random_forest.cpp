@@ -38,10 +38,10 @@ DataSet make_separable_dataset() {
 TEST_CASE("RandomForest : constructor validation") {
 
     std::vector<HyperParam> bad_params = {
-        HyperParam{.n_estimators = 0,  .mtry = 2,   .max_depth = 3},   
-        HyperParam{.n_estimators = 10, .mtry = 0,   .max_depth = 3},   
-        HyperParam{.n_estimators = 10, .mtry = -97, .max_depth = 3},   
-        HyperParam{.n_estimators = 10, .mtry = 2,   .max_depth = 0},   
+        HyperParam{.mtry = 2,.n_estimators = 0,  .max_depth = 3},   
+        HyperParam{.mtry = 0,.n_estimators = 10,    .max_depth = 3},   
+        HyperParam{.mtry = -97,.n_estimators = 10,  .max_depth = 3},   
+        HyperParam{.mtry = 2,.n_estimators = 10,   .max_depth = 0},   
     };
     for (const auto& h_param : bad_params) {
         REQUIRE_THROWS_AS(RandomForest(h_param, 1), std::invalid_argument);
