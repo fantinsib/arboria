@@ -79,6 +79,11 @@ rf.predict_proba(x_test)
 rf.out_of_bag(x_train, y_train)
 ````
 
+### Additionnal Documentation 
+
+Additionnal [notes](docs/notes/) and [diagrams](docs/diagrams/) can be found in the [docs folder](docs/) of this repository.
+
+
 ## Roadmap 
  
 ⚠️ Still work in progress
