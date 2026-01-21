@@ -42,7 +42,7 @@ RandomForest::RandomForest(HyperParam hyperParam, std::optional<std::uint32_t> u
             //mtry == -99 : auto (sqrt)
             //mtry == -98 : auto (log)
     if (*hyperParam.mtry <= 0 && *hyperParam.mtry != -99 && *hyperParam.mtry != -98) {
-            std::cout<< "In RF constructor : " << *hyperParam.mtry<< std::endl; 
+
             throw std::invalid_argument("arboria::tree::RandomForest : mtry argument must be greater than or equal 0");
     }
         mtry = *hyperParam.mtry;
@@ -185,7 +185,6 @@ void RandomForest::fit_(const DataSet& data, const SplitParam &param, SplitConte
     }
 
     if (n_cols < mtry) {
-        std::cout << "Received mtry : " << mtry << std::endl;
         throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter can't be larger than the number of features in the dataset");
     }
     //to del

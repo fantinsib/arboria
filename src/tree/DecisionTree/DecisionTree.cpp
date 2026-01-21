@@ -20,7 +20,6 @@ namespace arboria {
 DecisionTree::DecisionTree(HyperParam h_param)
 {
     if (h_param.max_depth.has_value()){
-        std::cout << "In DecisionTree constructor : " << *h_param.max_depth << std::endl;
         if (*h_param.max_depth <= 0 && *h_param.max_depth != -99 && *h_param.max_depth != -98) throw std::invalid_argument("arboria::tree::DecisionTree : max_depth argument must be greater than or equal 0");
         max_depth = *h_param.max_depth;
     }

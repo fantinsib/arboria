@@ -5,7 +5,7 @@ from ._arboria import _accuracy
 import math
 
 class DecisionTree(_DecisionTree):
-    def __init__(self, max_depth: int = None):
+    def __init__(self, max_depth: int | None = None):
         """
         Decision tree classifier.
 
