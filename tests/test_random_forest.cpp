@@ -49,6 +49,28 @@ TEST_CASE("RandomForest : constructor validation") {
 }
 
 
+TEST_CASE("RandomForest : constructor validation - values not passed") {
+
+    std::vector<HyperParam> incomp_params = {
+        HyperParam{.mtry = 2,.n_estimators = 10},   
+        HyperParam{.mtry = 2,.max_depth = 3},   
+
+    };
+    for (const auto& h_param : incomp_params) {
+        
+        DataSet data = make_separable_dataset();
+        RandomForest forest(h_param, 1);
+        FeatureSelection f_selection = RandomK{h_param.mtry};
+        Criterion crit = Gini{};
+        ThresholdComputation t_comp = CART{};
+        SplitParam param = ParamBuilder(TreeModel::RandomForest, crit, t_comp, f_selection);
+
+        forest.fit(data, param);
+
+    }
+}
+
+
 TEST_CASE("RandomForest : fit then predict basic usage") {
     DataSet data = make_separable_dataset();
 

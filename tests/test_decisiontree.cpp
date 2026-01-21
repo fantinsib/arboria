@@ -9,6 +9,8 @@
 #include "tree/DecisionTree/DecisionTree.h"
 #include "split_strategy/types/split_param.h"
 #include "split_strategy/types/split_hyper.h"
+#include "split_strategy/types/ParamBuilder/ParamBuilder.h"
+#include "tree/TreeModel.h"
 
 TEST_CASE("DecisionTree :  predict_one() basic usage - fit") {
 
@@ -21,12 +23,36 @@ TEST_CASE("DecisionTree :  predict_one() basic usage - fit") {
     std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
     
     arboria::DataSet data(X, y, 5, 3);
-
+    HyperParam h_param{.max_depth = 4};
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    arboria::DecisionTree tree(h_param);
 
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    
+    tree.fit(data, params);
+
+    REQUIRE(tree.is_fitted() == true);
+    REQUIRE(tree.num_features == 3);
+
+}
+
+TEST_CASE("DecisionTree :  predict_one() basic usage - entropy") {
+
+
+    std::vector<float> X {0,2,1,
+                        7,9,10,
+                        1,1,2,
+                        11, 9, 8,
+                        2,0,1}; 
+    std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
+    
+    arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 4};
+    
+    arboria::DecisionTree tree(h_param);
+
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree,  Entropy{});
+    
     tree.fit(data, params);
 
     REQUIRE(tree.is_fitted() == true);
@@ -46,10 +72,11 @@ SECTION("Class 1 pred") {
     std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
     
     arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 4};
     
-    arboria::DecisionTree tree(4);
+    arboria::DecisionTree tree(h_param);
     
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
 
     tree.fit(data, params);
 
@@ -67,10 +94,10 @@ SECTION("Class 2 pred") {
     std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
     
     arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
 
     tree.fit(data, params);
 
@@ -78,6 +105,24 @@ SECTION("Class 2 pred") {
     int pred = tree.predict_one(sample);
     REQUIRE(pred == 0);
     }
+
+}
+
+TEST_CASE("DecisionTree : instanciation without max_depth"){
+    std::vector<float> X {0,2,1,
+                        11, 9, 8,
+                        0,2,1,
+                        11, 9, 8,
+                        0,2,1,}; 
+    std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
+    
+    arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    arboria::DecisionTree tree(h_param);
+    tree.fit(data, params);
+
+    REQUIRE(tree.is_fitted() == true);
 
 }
 
@@ -91,10 +136,10 @@ TEST_CASE("DecisionTree :  predict_one() :predict from duplicate row") {
     std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
     
     arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
 
     tree.fit(data, params);
 
@@ -119,10 +164,10 @@ TEST_CASE("DecisionTree :  predict_one() : Duplicate samples & unique class") {
     std::vector<float> y {0,0,0,0,0};
     
     arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
 
     tree.fit(data, params);
     std::vector<float> sample {10,11,12};
@@ -139,10 +184,10 @@ TEST_CASE("DecisionTree :  predict_one() :unsplitable data with unbalanced class
     std::vector<float> y {0,1,1,1,0};
     
     arboria::DataSet data(X, y, 5, 3); 
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
 
     tree.fit(data, params);
     std::vector<float> sample {10,11,12};
@@ -158,10 +203,10 @@ TEST_CASE("DecisionTree :  predict_one() : unsplitable data with balanced classe
     std::vector<float> y {0,1,1,0};
     
     arboria::DataSet data(X, y, 4, 3); 
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
 
     tree.fit(data, params);
     std::vector<float> sample { 0,2,1};
@@ -175,10 +220,10 @@ TEST_CASE("DecisionTree : error - one sample") {
     std::vector<float> y {0};
     
     arboria::DataSet data(X, y, 1, 3);
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
 
     REQUIRE_THROWS_AS(tree.fit(data, params), std::invalid_argument);
 
@@ -193,10 +238,10 @@ TEST_CASE("DecisionTree : predict_one() error - trying to predict from non fitte
     std::vector<float> y {0,1,1,0};
     
     arboria::DataSet data(X, y, 4, 3); 
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
 
     std::vector<float> sample {10,11,12};
     REQUIRE_THROWS_AS(tree.predict_one(sample), std::invalid_argument);
@@ -214,10 +259,10 @@ TEST_CASE("DecisionTree - .predict() - basic usage") {
     std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
     
     arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
 
     tree.fit(data, params);
     
@@ -247,10 +292,10 @@ TEST_CASE("DecisionTree - .predict() - unique sample") {
     std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
     
     arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
 
     tree.fit(data, params);
     
@@ -275,10 +320,10 @@ TEST_CASE("DecisionTree - error .predict() - not fitted") {
     std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
     
     arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
     
     std::vector<float> samples_to_predict{1,2,0,
                                         0,-1,-2,
@@ -300,15 +345,37 @@ TEST_CASE("DecisionTree - error .predict() - dimension mismatch") {
     std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
     
     arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
     
-    arboria::DecisionTree tree(4);
-    
-    SplitParam params;
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+
+    tree.fit(data, params);
     
     std::vector<float> samples_to_predict{1,2,0,
                                         0,-1,-2,
                                         7,12};
 
     REQUIRE_THROWS_AS(tree.predict(samples_to_predict), std::invalid_argument);
+
+}
+
+TEST_CASE("DecisionTree - error .fit() - trying to call with uninitialized SplitParam"){
+
+
+    std::vector<float> X {0,2,1,
+                        7,9,10,
+                        1,1,2,
+                        11, 9, 8,
+                        2,0,1}; 
+    std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
+    
+    arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 4};
+    arboria::DecisionTree tree(h_param);
+    
+    SplitParam params;
+    
+    REQUIRE_THROWS_AS(tree.fit(data, params), std::invalid_argument);
 
 }

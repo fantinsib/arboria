@@ -34,7 +34,10 @@ namespace arboria{
  *
  * @throws std::logic_error If @p model is not supported by this builder.
  */
-SplitParam ParamBuilder(const TreeModel model, 
-                        std::optional<Criterion> crit,
-                        std::optional<ThresholdComputation> threshold, 
-                        std::optional<FeatureSelection> feature);}
+SplitParam ParamBuilder(const TreeModel model,
+                        std::optional<Criterion> crit = std::nullopt,
+                        std::optional<ThresholdComputation> threshold= std::nullopt, 
+                        std::optional<FeatureSelection> feature = std::nullopt);
+
+
+}

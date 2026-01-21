@@ -1,18 +1,21 @@
 #pragma once
+#include <optional>
 #include <variant>
 #include <cstddef>
 
 //--------------------- FeatureSelection
+
+struct Undefined{};
 
 //Searches all features during split
 struct AllFeatures {};
 
 //Searches only mtry features at each split
 struct RandomK{
-    int mtry = -1; 
+    std::optional<int> mtry; 
 };
 
-using FeatureSelection = std::variant<AllFeatures, RandomK>;
+using FeatureSelection = std::variant<Undefined, AllFeatures, RandomK>;
 
 //-------------------- ThresholdComputation
 
@@ -21,7 +24,7 @@ struct CART{};
 struct Random{};
 struct Quantile{};
 
-using ThresholdComputation = std::variant<CART, Random, Quantile>;
+using ThresholdComputation = std::variant<Undefined, CART, Random, Quantile>;
 
 //------------------ Criterion
 
@@ -30,7 +33,7 @@ struct Gini {};
 //Uses Entropy as impurity parameter
 struct Entropy{};
 
-using Criterion = std::variant<Gini, Entropy>;
+using Criterion = std::variant<Undefined, Gini, Entropy>;
 
 /**
  * @brief struct controlling the policy of the split (split logic)
@@ -40,6 +43,15 @@ using Criterion = std::variant<Gini, Entropy>;
  *  - which impurity criterion is used (Gini, Entropy, ...)
  *  - how threshold candidates are generated
  *  - how features are selected
+ *
+ * @param criterion A criterion to use in {Gini, Entropy}
+ * @param t_comp The threshold computation method {CART, Random, Quantile}
+ * @param f_selection The feature selection method {AllFeatures, RandomK}
+ *
+ * @note By default all parameters are set to Undefined. 
+ * Construction must be explicit, either by specifying the
+ * arguments or by calling ParamBuilder(TreeModel), which 
+ * will return a SplitParam with predefined template of parameters
  *
  */
 struct SplitParam {

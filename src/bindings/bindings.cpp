@@ -26,7 +26,15 @@ using arboria::ParamBuilder;
 PYBIND11_MODULE(_arboria, m){
 
     py::class_<arboria::DecisionTree>(m, "DecisionTree")
-    .def(py::init<int>())
+        .def(py::init([](std::optional<int> max_depth)
+                        {        
+                        HyperParam hp;
+                        if (max_depth.has_value()) hp.max_depth = max_depth;
+
+                        return std::make_unique<arboria::DecisionTree>(hp);}
+                    ),
+            py::arg("max_depth") = std::nullopt
+    )
 
     .def("_fit",
     [](arboria::DecisionTree& self, 
@@ -134,21 +142,23 @@ PYBIND11_MODULE(_arboria, m){
 
 
     py::class_<arboria::RandomForest>(m, "RandomForest")
-        .def(py::init([](int n_estimators,
-                        int m_try,
-                        int max_depth, 
+        .def(py::init([](std::optional<int> n_estimators,
+                        std::optional<int> m_try,
+                        std::optional<int> max_depth, 
                         std::optional<std::uint32_t> seed)
                         {        
                         HyperParam hp;
                         hp.n_estimators = n_estimators;
-                        hp.mtry = m_try;
-                        hp.max_depth = max_depth;
+                        hp.mtry = m_try; // value always set during Python init ; must be passed
+                        if (max_depth.has_value()) {
+                            hp.max_depth= max_depth;}
+                        
 
                         return std::make_unique<arboria::RandomForest>(hp, seed);}
                     ),
             py::arg("n_estimators"), 
             py::arg("m_try"),
-            py::arg("max_depth"),
+            py::arg("max_depth") = std::nullopt,
             py::arg("seed") = std::nullopt
     )
 
@@ -182,7 +192,7 @@ PYBIND11_MODULE(_arboria, m){
                 //----------Feature
                 FeatureSelection feature = RandomK{m_try};
 
-                SplitParam param = ParamBuilder(TreeModel::DecisionTree, 
+                SplitParam param = ParamBuilder(TreeModel::RandomForest, 
                     crit, 
                     threshold , 
                     feature);

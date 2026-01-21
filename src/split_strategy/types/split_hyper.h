@@ -13,9 +13,9 @@
 
 struct HyperParam{
 
-    std::optional<int> mtry;
-    std::optional<int> n_estimators;
-    std::optional<int> max_depth;
-    std::optional<int> max_samples;
+    std::optional<int> mtry=std::nullopt;
+    std::optional<int> n_estimators=std::nullopt;
+    std::optional<int> max_depth=std::nullopt;
+    std::optional<int> max_samples=std::nullopt;
     
 };

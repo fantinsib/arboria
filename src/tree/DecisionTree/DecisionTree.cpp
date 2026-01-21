@@ -2,6 +2,8 @@
 #include "DecisionTree.h"
 #include "helpers/helpers.h"
 #include "split_strategy/types/split_context.h"
+#include "split_strategy/types/split_hyper.h"
+#include "split_strategy/types/split_param.h"
 
 
 #include <algorithm>
@@ -9,13 +11,20 @@
 #include <numeric>
 #include <stdexcept>
 #include <cmath>
+#include <variant>
 
 
 
 namespace arboria {
 
-DecisionTree::DecisionTree(int max_depth_):
-    max_depth(max_depth_) {}
+DecisionTree::DecisionTree(HyperParam h_param)
+{
+    if (h_param.max_depth.has_value()){
+        std::cout << "In DecisionTree constructor : " << *h_param.max_depth << std::endl;
+        if (*h_param.max_depth <= 0 && *h_param.max_depth != -99 && *h_param.max_depth != -98) throw std::invalid_argument("arboria::tree::DecisionTree : max_depth argument must be greater than or equal 0");
+        max_depth = *h_param.max_depth;
+    }
+}
 
     //Base fitting function with 1 full DataSet and params
 void DecisionTree::fit(const DataSet& data, const SplitParam& params) {
@@ -27,6 +36,11 @@ void DecisionTree::fit(const DataSet& data, const SplitParam& params) {
     std::vector<int> buffer(n_rows);
     std::iota(buffer.begin(), buffer.end(), 0);
     std::span<int> idx(buffer);
+
+    if (std::holds_alternative<Undefined>(params.criterion) || std::holds_alternative<Undefined>(params.f_selection) || std::holds_alternative<Undefined>(params.t_comp)){
+        throw std::invalid_argument("arboria::DecisionTree::fit : params passed to fit function contain an undefined component");
+    }
+
     fit_(data, root_node, idx, 0, params);
     fitted = true; 
     num_features = n_cols;
@@ -114,8 +128,9 @@ void DecisionTree::fit_(const DataSet& data, Node& node, std::span<int> idx, int
     //case if the current node is pure
     if ((pos_count == 0) || (neg_count ==0)) {end_branch();return;}
     //case max depth is reached:
-    if (depth == max_depth) {end_branch(); return;}
-
+    if (max_depth.has_value()){
+        if (depth == max_depth) {end_branch(); return;}
+    }
     //Compute the split :
     SplitResult split = splitter.best_split(idx, data, params, context);
 

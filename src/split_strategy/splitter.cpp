@@ -67,7 +67,7 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
         
         else if constexpr ((std::is_same_v<T, RandomK>)) {
             auto* rk = std::get_if<RandomK>(&params.f_selection);
-            int mtry = rk->mtry;
+            int mtry = *rk->mtry;
             if (mtry <= 0) {throw std::logic_error("arboria::split_strategy_Splitter::best_split : number of sampled features for RandomK must be positive");}
             if (mtry > num_features) {throw std::logic_error("arboria::split_strategy_Splitter::best_split : mtry parameter can't be larger than number of features");}
             std::vector<int> all_features (num_features);
@@ -75,6 +75,11 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
             features = randomK(all_features, mtry, context.rng);
             
             }
+
+        else if constexpr ((std::is_same_v<T, Undefined>)) {
+                throw std::invalid_argument("aboria::split_strategy::Splitter::best_split : feature selection parameter is Undefined");
+            }
+            
             
         else throw std::logic_error("aboria::split_strategy::Splitter::best_split : feature selection parameter is not recognized");
         
@@ -102,6 +107,10 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
             else if constexpr (std::is_same_v<T, Quantile>) {
                 throw std::logic_error("Not yet implemented");
             // to implement
+            }
+
+            else if constexpr ((std::is_same_v<T, Undefined>)) {
+                throw std::invalid_argument("aboria::split_strategy::Splitter::best_split : threshold computation parameter is Undefined");
             }
             
             else throw std::logic_error("aboria::split_strategy::Splitter::best_split : threshold computation parameter is not recognized");
@@ -158,13 +167,18 @@ float Splitter::score_function(const SplitParam& params, const SplitStats& stats
     return std::visit([&](const auto& crit_function) {
         using T = std::decay_t<decltype(crit_function)>;
 
-
         if constexpr ((std::is_same_v<T, Gini>)) {
             return split::weighted_gini(stats.l_pos, stats.l_neg, stats.r_pos, stats.r_neg);}
          
         else if constexpr (std::is_same_v<T, Entropy>) {
             return split::weighted_entropy(stats.l_pos, stats.l_neg, stats.r_pos, stats.r_neg);}
     
+        
+        else if constexpr ((std::is_same_v<T, Undefined>)) {
+                throw std::invalid_argument("aboria::split_strategy::Splitter::score_function : scoring function parameter is Undefined");
+                return 1.f;
+            }
+        
         else throw std::logic_error("arboria::split_strategy::Splitter::score_function : no scoring criterion was passed.");
         }, params.criterion);
 

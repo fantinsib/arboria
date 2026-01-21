@@ -8,6 +8,7 @@
 #include "split_strategy/splitter.h"
 #include "helpers/helpers.h"
 #include "split_strategy/types/split_context.h"
+#include "split_strategy/types/split_hyper.h"
 #include "tree/TreeModel.h"
 
 using arboria::split_strategy::Splitter;
@@ -27,7 +28,7 @@ class DecisionTree
         * @param max_depth Maximum allowed depth of the tree.
         *        
         */
-        DecisionTree(int max_depth);
+        DecisionTree(HyperParam h_param);
         
         /**
         * @brief Fit the decision tree on a dataset.
@@ -85,7 +86,7 @@ class DecisionTree
         std::vector<int> predict(const std::span<const float> samples) const;
      
         //Maximum depth allowed for the construction of the DecisionTree
-        int max_depth;
+        std::optional<int>max_depth;
         //Number of features seen in the DataSet during training
         int num_features;
         //Getter for fitted

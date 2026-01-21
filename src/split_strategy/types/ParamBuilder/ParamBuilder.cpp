@@ -12,9 +12,10 @@
 
 namespace arboria{
 SplitParam ParamBuilder(const TreeModel model, 
-                        std::optional<Criterion> crit,
+                        std::optional<Criterion> crit ,
                         std::optional<ThresholdComputation> threshold, 
-                        std::optional<FeatureSelection> feature){
+                        std::optional<FeatureSelection> feature)
+{
 
     if (model == TreeModel::DecisionTree){
         if (!crit.has_value()){

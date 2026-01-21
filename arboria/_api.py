@@ -5,14 +5,14 @@ from ._arboria import _accuracy
 import math
 
 class DecisionTree(_DecisionTree):
-    def __init__(self, max_depth: int):
+    def __init__(self, max_depth: int = None):
         """
         Decision tree classifier.
 
         Parameters
         ----------
         max_depth : int
-            Maximum depth of the tree.
+            Maximum depth of the tree. Default is None
         """
         super().__init__(max_depth)
 
@@ -26,6 +26,12 @@ class DecisionTree(_DecisionTree):
         y : ndarray of shape (n_samples,)
         criterion : {"gini", "entropy"}, default="gini"
         """
+        if not hasattr(X, "__array_interface__"):
+            raise TypeError("X must be a NumPy-compatible array")
+
+        if not hasattr(y, "__array_interface__"):
+            raise TypeError("y must be a NumPy-compatible array")
+        
         return self._fit(X, y, criterion)
     
     def predict(self, X):
@@ -40,11 +46,17 @@ class DecisionTree(_DecisionTree):
         -------
         np.ndarray : array of predicted class as integers.
         """
+        if not hasattr(X, "__array_interface__"):
+            raise TypeError("X must be a NumPy-compatible array")
+
         return self._predict(X)
 
 
 class RandomForest(_RandomForest):
-    def __init__(self, max_depth: int, max_features: int | str ="sqrt", n_estimators: int =70, seed : int | None = None):
+    def __init__(self, max_depth: int = None, 
+                 max_features: int | str ="sqrt", 
+                 n_estimators: int = 70, 
+                 seed : int | None = None):
         """
         Random Forest classifier.
 
@@ -56,7 +68,7 @@ class RandomForest(_RandomForest):
             Number of features to sample at each split. Can be int or
             "sqrt" : value set as the square root of the number of features.
         max_depth : int
-            Maximum depth of the tree.
+            Maximum depth of the tree. Default is None
         seed : int
             Seed of the tree. Default None will result in a random seed.
         """
@@ -78,6 +90,12 @@ class RandomForest(_RandomForest):
         y : ndarray of shape (n_samples,)
         criterion : {"gini", "entropy"}, default="gini"
         """
+        if not hasattr(X, "__array_interface__"):
+            raise TypeError("X must be a NumPy-compatible array")
+
+        if not hasattr(y, "__array_interface__"):
+            raise TypeError("y must be a NumPy-compatible array")
+
         if self.mtry == -99:
             self.mtry = max(1, int(math.sqrt(X.shape[1])))
         if self.mtry == -98:
@@ -96,6 +114,9 @@ class RandomForest(_RandomForest):
         -------
         np.ndarray : array of predicted class as integers.
         """
+        if not hasattr(X, "__array_interface__"):
+            raise TypeError("X must be a NumPy-compatible array")
+
         return self._predict(X)
     
     def predict_proba(self, X):
@@ -111,6 +132,8 @@ class RandomForest(_RandomForest):
         -------
         np.ndarray : array of predicted class as float.
         """
+        if not hasattr(X, "__array_interface__"):
+            raise TypeError("X must be a NumPy-compatible array")
         return self._predict_proba(X)
     
     def out_of_bag(self, X, y):
@@ -127,7 +150,12 @@ class RandomForest(_RandomForest):
         float : the score of the Random Forest classifier on 
         the samples not bootstrapped during training
         """
+        if not hasattr(X, "__array_interface__"):
+            raise TypeError("X must be a NumPy-compatible array")
 
+        if not hasattr(y, "__array_interface__"):
+            raise TypeError("y must be a NumPy-compatible array")
+        
         return self._out_of_bag(X,y)
 
 

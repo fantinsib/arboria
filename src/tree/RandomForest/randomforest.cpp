@@ -42,7 +42,7 @@ RandomForest::RandomForest(HyperParam hyperParam, std::optional<std::uint32_t> u
             //mtry == -99 : auto (sqrt)
             //mtry == -98 : auto (log)
     if (*hyperParam.mtry <= 0 && *hyperParam.mtry != -99 && *hyperParam.mtry != -98) {
-            std::cout<< *hyperParam.mtry<< std::endl; 
+            std::cout<< "In RF constructor : " << *hyperParam.mtry<< std::endl; 
             throw std::invalid_argument("arboria::tree::RandomForest : mtry argument must be greater than or equal 0");
     }
         mtry = *hyperParam.mtry;
@@ -170,11 +170,25 @@ void RandomForest::fit_(const DataSet& data, const SplitParam &param, SplitConte
 
     const size_t n_rows = static_cast<size_t>(data.n_rows());
     const size_t n_cols = static_cast<size_t>(data.n_cols());
-    int mtry = std::get<RandomK>(param.f_selection).mtry;
+    const auto* rk = std::get_if<RandomK>(&param.f_selection);
+    if (!rk) {
+        throw std::logic_error("arboria::tree::RandomForest::fit_ : f_selection is not RandomK");
+    }
+    if (!rk->mtry) {
+        throw std::invalid_argument("arboria::tree::RandomForest::fit_ : RandomK::mtry is not defined");
+    }
+
+    const int mtry = *rk->mtry;  
+
+    if (mtry <= 0) {
+        throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter must be > 0");
+    }
+
     if (n_cols < mtry) {
         std::cout << "Received mtry : " << mtry << std::endl;
         throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter can't be larger than the number of features in the dataset");
     }
+    //to del
     if (mtry <= 0) throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter can't be negative");
 
     num_features = data.n_cols();
@@ -195,7 +209,8 @@ void RandomForest::fit_(const DataSet& data, const SplitParam &param, SplitConte
         // then fit tree with param.f_selection = RandomK & 
         // add to the RF list 
         ForestTree forest_tree;
-        forest_tree.tree = std::make_unique<DecisionTree>(max_depth);
+        HyperParam h_param{.max_depth = max_depth};
+        forest_tree.tree = std::make_unique<DecisionTree>(h_param);
         forest_tree.in_bag = std::move(seen_idx);
 
         trees.push_back(std::move(forest_tree));
