@@ -36,17 +36,25 @@ DataSet make_separable_dataset() {
 }
 
 TEST_CASE("RandomForest : constructor validation") {
-    REQUIRE_THROWS_AS(RandomForest(0, 1, 1, 1), std::invalid_argument);
-    REQUIRE_THROWS_AS(RandomForest(1, 0, 1, 1), std::invalid_argument);
-    REQUIRE_THROWS_AS(RandomForest(1, 1, 0, 1), std::invalid_argument);
+
+    std::vector<HyperParam> bad_params = {
+        HyperParam{.n_estimators = 0,  .mtry = 2,   .max_depth = 3},   
+        HyperParam{.n_estimators = 10, .mtry = 0,   .max_depth = 3},   
+        HyperParam{.n_estimators = 10, .mtry = -97, .max_depth = 3},   
+        HyperParam{.n_estimators = 10, .mtry = 2,   .max_depth = 0},   
+    };
+    for (const auto& h_param : bad_params) {
+        REQUIRE_THROWS_AS(RandomForest(h_param, 1), std::invalid_argument);
+    }
 }
+
 
 TEST_CASE("RandomForest : fit then predict basic usage") {
     DataSet data = make_separable_dataset();
 
     SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
-
-    RandomForest forest(25, 2, 4, 123);
+    HyperParam h_param{2, 25, 4};
+    RandomForest forest(h_param, 123);
     forest.fit(data, param);
 
     REQUIRE(forest.is_fitted() == true);
@@ -73,7 +81,8 @@ TEST_CASE("RandomForest : fit then predict basic usage") {
 }
 
 TEST_CASE("RandomForest : predict error before fit") {
-    RandomForest forest(5, 2, 3, 7);
+    HyperParam h_param{2, 25, 4};
+    RandomForest forest(h_param, 123);
     std::vector<float> samples{0, 0, 0};
 
     REQUIRE_THROWS_AS(forest.predict(samples), std::invalid_argument);
@@ -81,7 +90,8 @@ TEST_CASE("RandomForest : predict error before fit") {
 
 TEST_CASE("RandomForest : predict_proba error on wrong dimension") {
     DataSet data = make_separable_dataset();
-    RandomForest forest(5, 2, 3, 7);
+    HyperParam h_param{2, 25, 4};
+    RandomForest forest(h_param, 123);
     SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
     forest.fit(data, param);
 
@@ -91,16 +101,17 @@ TEST_CASE("RandomForest : predict_proba error on wrong dimension") {
 
 TEST_CASE("RandomForest : mtry larger than feature count") {
     DataSet data = make_separable_dataset();
-    RandomForest forest(5, 10, 3, 7);
+    HyperParam h_param{8, 25, 4};
+    RandomForest forest(h_param, 123);
     SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{10});
-
 
     REQUIRE_THROWS_AS(forest.fit(data, param), std::invalid_argument);
 }
 
 TEST_CASE("RandomForest : out_of_bag basic range") {
     DataSet data = make_separable_dataset();
-    RandomForest forest(20, 2, 4, 123);
+    HyperParam h_param{2, 20, 4};
+    RandomForest forest(h_param, 123);
     SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
 
     forest.fit(data, param);
@@ -112,7 +123,8 @@ TEST_CASE("RandomForest : out_of_bag basic range") {
 
 TEST_CASE("RandomForest : out_of_bag error on empty data") {
     DataSet data = make_separable_dataset();
-    RandomForest forest(5, 2, 3, 7);
+    HyperParam h_param{2, 20, 4};
+    RandomForest forest(h_param, 123);
     SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
 
     forest.fit(data, param);

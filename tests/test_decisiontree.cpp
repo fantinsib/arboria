@@ -8,6 +8,7 @@
 
 #include "tree/DecisionTree/DecisionTree.h"
 #include "split_strategy/types/split_param.h"
+#include "split_strategy/types/split_hyper.h"
 
 TEST_CASE("DecisionTree :  predict_one() basic usage - fit") {
 
@@ -20,6 +21,7 @@ TEST_CASE("DecisionTree :  predict_one() basic usage - fit") {
     std::vector<float> y {0,1,0,1,0}; //dataset with trivial classes
     
     arboria::DataSet data(X, y, 5, 3);
+
     
     arboria::DecisionTree tree(4);
     

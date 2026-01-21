@@ -133,7 +133,18 @@ PYBIND11_MODULE(_arboria, m){
 
 
     py::class_<arboria::RandomForest>(m, "RandomForest")
-        .def(py::init<int, int, int, std::optional<uint32_t>>(),
+        .def(py::init([](int n_estimators,
+                        int m_try,
+                        int max_depth, 
+                        std::optional<std::uint32_t> seed)
+                        {        
+                        HyperParam hp;
+                        hp.n_estimators = n_estimators;
+                        hp.mtry = m_try;
+                        hp.max_depth = max_depth;
+
+                        return std::make_unique<arboria::RandomForest>(hp, seed);}
+                    ),
             py::arg("n_estimators"), 
             py::arg("m_try"),
             py::arg("max_depth"),

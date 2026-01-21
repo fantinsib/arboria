@@ -9,6 +9,7 @@
 #include "split_strategy/types/split_param.h"
 #include "tree/DecisionTree/DecisionTree.h"
 #include "tree/TreeModel.h"
+#include "split_strategy/types/split_hyper.h"
 
 #include <optional>
 #include <vector>
@@ -38,7 +39,7 @@ class RandomForest{
 
     public:
     //Constructor for the RandomForest
-    RandomForest(int n_estimators, int mtry, int max_depth, std::optional<uint32_t> seed = std::nullopt);
+    RandomForest(HyperParam hyperParam, std::optional<uint32_t> seed = std::nullopt);
    
     
     /**
@@ -124,7 +125,7 @@ class RandomForest{
     float out_of_bag(const DataSet& data) const;
 
     //Returns current seed
-    std::uint32_t seed() const {return seed_;}
+    std::uint32_t seed() const {return *seed_;}
 
     /**
      * @brief Set the seed for the RandomForest
@@ -173,7 +174,7 @@ class RandomForest{
     int num_features;
     //seed : can be specified by the user (at declaration or via .set_seed()). Otherwise, 
     // is set by std::random_devices
-    uint32_t seed_;
+    std::optional<uint32_t> seed_;
     std::vector<ForestTree> trees;
 
 };

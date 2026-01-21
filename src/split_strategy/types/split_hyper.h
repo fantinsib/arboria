@@ -3,11 +3,19 @@
 
 
 
+#include <optional>
+
+/**
+ * @brief Struct containing hyper parameters for models.
+ * 
+ * 
+ */
+
 struct HyperParam{
 
-    int mtry = -1;
-    int n_estimators = -1;
-    int max_depth = -1;
-    int min_sample_leaf = -1; 
-    int max_samples = -1;
+    std::optional<int> mtry;
+    std::optional<int> n_estimators;
+    std::optional<int> max_depth;
+    std::optional<int> max_samples;
+    
 };

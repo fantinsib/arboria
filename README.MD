@@ -79,9 +79,8 @@ rf.predict_proba(x_test)
 rf.out_of_bag(x_train, y_train)
 ````
 
-
 ## Roadmap 
-
+ 
 ⚠️ Still work in progress
 
 #### Planned improvements:
@@ -89,3 +88,4 @@ rf.out_of_bag(x_train, y_train)
 - Performance optimizations for RandomForest
 - Parallelism
 - Extra-Trees, Honest Trees, Quantile Trees
+

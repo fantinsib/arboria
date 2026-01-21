@@ -8,9 +8,13 @@
 #include "dataset/dataset.h"
 #include "split_strategy/sampling/sampling.h"
 #include "split_strategy/types/split_context.h"
+#include "split_strategy/types/split_hyper.h"
 #include "split_strategy/types/split_param.h"
+#include "split_strategy/types/split_hyper.h"
 #include "tree/DecisionTree/DecisionTree.h"
 
+
+#include <_types/_uint32_t.h>
 #include <algorithm>
 #include <cstdint>
 #include <cstddef>
@@ -25,35 +29,42 @@ using arboria::ForestTree;
 
 namespace arboria{
 
-RandomForest::RandomForest(int n_estimators_, int mtry_, int max_depth_, std::optional<uint32_t> user_seed):
-
-    n_estimators(n_estimators_),
-    mtry(mtry_),
-    max_depth(max_depth_)
+RandomForest::RandomForest(HyperParam hyperParam, std::optional<uint32_t> user_seed)
 {
-    //mtry == -99 : auto (sqrt)
-    //mtry == -98 : auto (log)
 
-    if (mtry <= 0 && mtry != -99 && mtry != -98) {
-        std::cout<< mtry<< std::endl; 
-        throw std::invalid_argument("arboria::tree::RandomForest : mtry argument must be greater than or equal 0");
+    if (hyperParam.n_estimators.has_value()) {
+        if (*hyperParam.n_estimators <= 0) throw std::invalid_argument("arboria::tree::RandomForest : n_estimators argument must be greater than or equal 0");
+        n_estimators = *hyperParam.n_estimators;
     }
-    if (n_estimators <= 0) throw std::invalid_argument("arboria::tree::RandomForest : n_estimators argument must be greater than or equal 0");
-    if (max_depth_ <= 0) throw std::invalid_argument("arboria::tree::RandomForest : max_depth argument must be greater than or equal 0");
+    else n_estimators = 70;
 
-    trees.reserve(static_cast<size_t>(n_estimators_));
+    if (hyperParam.mtry.has_value()) {
+            //mtry == -99 : auto (sqrt)
+            //mtry == -98 : auto (log)
+    if (*hyperParam.mtry <= 0 && *hyperParam.mtry != -99 && *hyperParam.mtry != -98) {
+            std::cout<< *hyperParam.mtry<< std::endl; 
+            throw std::invalid_argument("arboria::tree::RandomForest : mtry argument must be greater than or equal 0");
+    }
+        mtry = *hyperParam.mtry;
+    }
+    else throw std::logic_error("RandomForest Init : No value received for mtry.");
+
+    if (hyperParam.max_depth.has_value()) {
+        if (*hyperParam.max_depth <= 0) throw std::invalid_argument("arboria::tree::RandomForest : max_depth argument must be greater than or equal 0");
+        max_depth = *hyperParam.max_depth;
+    }
+
+    trees.reserve(static_cast<size_t>(n_estimators));
     if (!user_seed){
         std::random_device rd;
-        seed_ = rd();
+        seed_ = static_cast<uint32_t>(rd());
     }
     else{seed_ = user_seed.value();}
 }
 
 void RandomForest::fit(const DataSet &data, const SplitParam& params){
 
-    //TODO for Python API : param builder function 
-    int n_rows = data.n_rows();
-    SplitContext context(seed_);
+    SplitContext context(seed_.value());
 
     fit_(data, params, context);
 
