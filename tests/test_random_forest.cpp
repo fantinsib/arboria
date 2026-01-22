@@ -9,12 +9,15 @@
 #include <catch2/catch_approx.hpp>
 #include <stdexcept>
 #include <vector>
+#include <iostream>
 
 #include "dataset/dataset.h"
 #include "split_strategy/types/split_param.h"
 #include "tree/RandomForest/randomforest.h"
 #include "split_strategy/types/ParamBuilder/ParamBuilder.h"
 #include "tree/TreeModel.h"
+
+#include "test_access.h"
 
 using arboria::DataSet;
 using arboria::RandomForest;
@@ -174,4 +177,70 @@ TEST_CASE("RandomForest : max_samples"){
     std::optional<float> m_samples = forest.get_max_samples();
 
     REQUIRE( m_samples.value() == Catch::Approx(max_sample));
+}
+
+TEST_CASE("RandomForest : min_sample_split"){
+
+    DataSet data = make_separable_dataset();
+    float min_sample_split = 2;
+    HyperParam h_param{.min_sample_split = min_sample_split, .mtry=2};
+    RandomForest forest(h_param, 123);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+
+    forest.fit(data, param);
+
+}
+
+TEST_CASE("RandomForest : min_sample_split propagation"){
+
+    DataSet data = make_separable_dataset();
+    int min_sample_split = 2;
+    int n_estimators = 10;
+    HyperParam h_param{.min_sample_split = min_sample_split, .mtry=2, .n_estimators= n_estimators};
+    RandomForest forest(h_param, 123);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+
+    forest.fit(data, param);
+
+    for (int i=0; i < n_estimators; i++){
+        
+        const arboria::ForestTree& forest_tree = arboria::test::RandomForestAccess::access_forest_trees(forest, i);
+        INFO("min_sample_split = " << forest_tree.tree->min_sample_split.value());
+        REQUIRE(forest_tree.tree->min_sample_split.value() == min_sample_split);
+
+    }
+
+
+}
+
+
+TEST_CASE("RandomForest : reproductibility"){
+
+        std::vector<float> X{
+        2,3,5,
+        2,3,5,
+        4, 6, 10,
+        4, 6, 10,
+        8, 12, 20,
+        8, 12, 20
+
+    };
+    std::vector<float> y{0, 1, 0, 1, 0, 1};
+    DataSet data(X,y, 6, 3);
+    int min_sample_split = 2;
+    int n_estimators = 2;
+    HyperParam h_param{.min_sample_split = min_sample_split, .mtry=1, .n_estimators= n_estimators};
+    RandomForest forest1(h_param, 123);
+    RandomForest forest2(h_param, 321);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+
+    forest1.fit(data, param);
+    forest2.fit(data, param);
+
+    std::vector<float> sample{4,12,5};
+    std::vector<float> pred1 = forest1.predict_proba(sample);
+    std::vector<float> pred2 = forest2.predict_proba(sample);
+    
+    REQUIRE(pred1 != pred2);
+
 }

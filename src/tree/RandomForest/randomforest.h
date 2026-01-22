@@ -11,9 +11,13 @@
 #include "tree/TreeModel.h"
 #include "split_strategy/types/split_hyper.h"
 
+
+
 #include <optional>
 #include <vector>
 #include <span>
+
+namespace arboria::test { struct RandomForestAccess; }  
 
 namespace arboria {
 
@@ -41,19 +45,6 @@ class RandomForest{
     //Constructor for the RandomForest
     RandomForest(HyperParam hyperParam, std::optional<uint32_t> seed = std::nullopt);
    
-    
-    /**
-    * @brief Fits the RandomForest model on a dataset.
-    *
-    * Builds the forest by training multiple decision trees on
-    * bootstrap samples of the dataset, using RandomK feature
-    * selection at each split.
-    *
-    * @param data DataSet containing input samples and target values.
-    * @note Internally, each tree is trained using the DecisionTree::fit() method.
-    */
-    void fit(const DataSet& data);
-    
     /**
     * @brief Fits the RandomForest model on a dataset with customs
     * params
@@ -158,6 +149,7 @@ class RandomForest{
     //Max depth of each tree
     std::optional<int> max_depth; 
     std::optional<float> max_samples;
+    std::optional<int> min_sample_split;
 
     /**
     * @brief Private method used to fit the RandomForest.
@@ -183,6 +175,9 @@ class RandomForest{
     // is set by std::random_devices
     std::optional<std::uint32_t> seed_;
     std::vector<ForestTree> trees;
+
+    //Accessor for tests
+    friend struct arboria::test::RandomForestAccess;
 
 };
 

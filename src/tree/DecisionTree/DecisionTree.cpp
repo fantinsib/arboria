@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <numeric>
+#include <optional>
 #include <stdexcept>
 #include <cmath>
 #include <variant>
@@ -23,6 +24,12 @@ DecisionTree::DecisionTree(HyperParam h_param)
         if (*h_param.max_depth <= 0 && *h_param.max_depth != -99 && *h_param.max_depth != -98) throw std::invalid_argument("arboria::tree::DecisionTree : max_depth argument must be greater than or equal 0");
         max_depth = *h_param.max_depth;
     }
+    if (h_param.min_sample_split.has_value()){
+        if (*h_param.min_sample_split <= 0) throw std::invalid_argument("arboria::tree::DecisionTree : min_sample_split argument must be greater than or equal 0");
+        min_sample_split = *h_param.min_sample_split;
+    }
+
+
 }
 
     //Base fitting function with 1 full DataSet and params
@@ -40,19 +47,26 @@ void DecisionTree::fit(const DataSet& data, const SplitParam& params) {
         throw std::invalid_argument("arboria::DecisionTree::fit : params passed to fit function contain an undefined component");
     }
 
-    fit_(data, root_node, idx, 0, params);
+    fit(data,idx, params);
     fitted = true; 
     num_features = n_cols;
 }
 
 //overload for a specific selection of rows of the dataset and context provider
-void DecisionTree::fit(const DataSet& data, const std::span<int> idx, const SplitParam& params, SplitContext& context) {
+void DecisionTree::fit(const DataSet& data, 
+                       const std::span<int> idx, 
+                       const SplitParam& params, 
+                       std::optional<std::reference_wrapper<SplitContext>> context) {
 
     int n_rows = data.n_rows();
     int n_cols = data.n_cols();
     if (n_rows <= 1) {throw std::invalid_argument("arboria::DecisionTree::fit -> invalid fitted DataSet");}
-    
-    fit_(data, root_node, idx, 0, params, context);
+    if (context){
+        fit_(data, root_node, idx, 0, params, context);
+    }
+    else {
+        fit_(data, root_node, idx, 0, params);
+    }
     fitted = true; 
     num_features = n_cols;
 }
@@ -105,7 +119,12 @@ int DecisionTree::predict_one_(const std::span<const float> sample, const Node& 
 }
 
 //fit the DecisionTree with SplitContext :
-void DecisionTree::fit_(const DataSet& data, Node& node, std::span<int> idx, int depth, const SplitParam& params, SplitContext& context){
+void DecisionTree::fit_(const DataSet& data, 
+                        Node& node, 
+                        std::span<int> idx, 
+                        int depth, 
+                        const SplitParam& params, 
+                        std::optional<std::reference_wrapper<SplitContext>> context){
 
     //lambda function to stop iteration :
     auto end_branch= [&](){
@@ -122,16 +141,28 @@ void DecisionTree::fit_(const DataSet& data, Node& node, std::span<int> idx, int
     int pos_count = count.first;
     int neg_count = count.second;
 
+    // --------- Logical stop cases
     //case idx refers to less than 1 sample
     if (idx.size() <= 1) {end_branch(); return;}
     //case if the current node is pure
     if ((pos_count == 0) || (neg_count ==0)) {end_branch();return;}
+    
+    //--------- Hyper Parameters stop cases
     //case max depth is reached:
     if (max_depth.has_value()){
         if (depth == max_depth) {end_branch(); return;}
     }
+    if (min_sample_split.has_value()){
+        if (idx.size() <= min_sample_split) {end_branch(); return;}
+    }
+
     //Compute the split :
-    SplitResult split = splitter.best_split(idx, data, params, context);
+    SplitResult split;
+    if (context) {
+        SplitContext& ctx = context->get();
+        split = splitter.best_split(idx, data, params, ctx);
+    }
+    else { split = splitter.best_split(idx, data, params);};
 
     if (split.has_split() == false) {end_branch();return;}
 
@@ -163,7 +194,7 @@ void DecisionTree::fit_(const DataSet& data, Node& node, std::span<int> idx, int
     }    
     
 }
-
+/*
 //overload if no context:
 void DecisionTree::fit_(const DataSet& data, Node& node, std::span<int> idx, int depth, const SplitParam& params){
 
@@ -188,6 +219,10 @@ void DecisionTree::fit_(const DataSet& data, Node& node, std::span<int> idx, int
     if ((pos_count == 0) || (neg_count ==0)) {end_branch();return;}
     //case max depth is reached:
     if (depth == max_depth) {end_branch(); return;}
+
+    if (min_sample_split.has_value()){
+        if (idx.size() <= min_sample_split) {end_branch(); return;}
+    }
 
     //Compute the split :
     SplitResult split = splitter.best_split(idx, data, params);
@@ -219,13 +254,8 @@ void DecisionTree::fit_(const DataSet& data, Node& node, std::span<int> idx, int
         fit_(data, *node.right_child, right_idx, depth+1, params);
         
 
-    }    
+    }    */
     
-}
-
-
-
-
 
 
 }

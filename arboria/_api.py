@@ -5,7 +5,9 @@ from ._arboria import _accuracy
 import math
 
 class DecisionTree(_DecisionTree):
-    def __init__(self, max_depth: int | None = None):
+    def __init__(self, 
+                 max_depth: int | None = None,
+                 min_sample_split: int | None = None):
         """
         Decision tree classifier.
 
@@ -13,8 +15,10 @@ class DecisionTree(_DecisionTree):
         ----------
         max_depth : int
             Maximum depth of the tree. Default is None
+        min_sample_split : int
+            Minimum of samples allowed in a leaf. Default None will set no limit
         """
-        super().__init__(max_depth)
+        super().__init__(max_depth=max_depth, min_sample_split=min_sample_split)
 
     def fit(self, X, y, criterion="gini"):
         """
@@ -57,6 +61,7 @@ class RandomForest(_RandomForest):
                  max_features: int | str ="sqrt", 
                  max_depth: int = None, 
                  max_samples: float = None,
+                 min_sample_split: int = None, 
                  seed : int | None = None):
         """
         Random Forest classifier.
@@ -71,7 +76,10 @@ class RandomForest(_RandomForest):
         max_depth : int
             Maximum depth of the tree. Default is None
         max_samples: float 
-            Percentage of samples to be boostratpped in each tree.
+            Percentage of samples to be boostratpped in each tree. Default bootstraps 
+            the total number of samples. 
+        min_sample_split : int
+            Minimum of samples allowed in a leaf. Default None will set no limit
         seed : int
             Seed of the tree. Default None will result in a random seed.
         """
@@ -81,7 +89,7 @@ class RandomForest(_RandomForest):
             self.mtry = -98
         else:
             self.mtry = max_features
-        return super().__init__(n_estimators = n_estimators, m_try = self.mtry,max_depth= max_depth, max_samples = max_samples, seed= seed)
+        return super().__init__(n_estimators = n_estimators, m_try = self.mtry,max_depth= max_depth, min_sample_split = min_sample_split, max_samples = max_samples, seed= seed)
 
     def fit(self, X, y, criterion= 'gini'):
         """

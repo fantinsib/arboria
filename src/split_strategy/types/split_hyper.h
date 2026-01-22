@@ -17,5 +17,6 @@ struct HyperParam{
     std::optional<int> n_estimators=std::nullopt;
     std::optional<int> max_depth=std::nullopt;
     std::optional<float> max_samples=std::nullopt;
+    std::optional<float> min_sample_split=std::nullopt;
     
 };

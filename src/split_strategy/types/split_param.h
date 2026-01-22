@@ -1,4 +1,5 @@
 #pragma once
+#include "split_strategy/types/split_hyper.h"
 #include <optional>
 #include <variant>
 #include <cstddef>
@@ -35,6 +36,8 @@ struct Entropy{};
 
 using Criterion = std::variant<Undefined, Gini, Entropy>;
 
+
+
 /**
  * @brief struct controlling the policy of the split (split logic)
  *
@@ -47,6 +50,7 @@ using Criterion = std::variant<Undefined, Gini, Entropy>;
  * @param criterion A criterion to use in {Gini, Entropy}
  * @param t_comp The threshold computation method {CART, Random, Quantile}
  * @param f_selection The feature selection method {AllFeatures, RandomK}
+ * @param hparam The hyperparameters that need to be passed to the loop
  *
  * @note By default all parameters are set to Undefined. 
  * Construction must be explicit, either by specifying the
@@ -59,5 +63,4 @@ struct SplitParam {
     Criterion criterion;
     ThresholdComputation t_comp;
     FeatureSelection f_selection;
-
 };

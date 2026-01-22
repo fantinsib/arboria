@@ -1,5 +1,6 @@
 
 #pragma once
+#include <optional>
 #include <vector>
 #include <span>
 
@@ -10,6 +11,8 @@
 #include "split_strategy/types/split_context.h"
 #include "split_strategy/types/split_hyper.h"
 #include "tree/TreeModel.h"
+
+namespace arboria::test { struct DecisionTreeAccess; }  
 
 using arboria::split_strategy::Splitter;
 using arboria::helpers::count_classes;
@@ -57,7 +60,10 @@ class DecisionTree
         * prediction is the majority class. In case of a tie, class prediction is 1.
         * @throws std::invalid_argument if the dataset is empty or invalid.
         */
-        void fit(const DataSet& data, const std::span<int> idx, const SplitParam& params, SplitContext& context);
+        void fit(const DataSet& data, 
+                 const std::span<int> idx, 
+                 const SplitParam& params, 
+                 std::optional<std::reference_wrapper<SplitContext>> context = std::nullopt);
 
         /**
          * @brief Predict the class of the passed sample
@@ -87,10 +93,12 @@ class DecisionTree
      
         //Maximum depth allowed for the construction of the DecisionTree
         std::optional<int>max_depth;
+        std::optional<int>min_sample_split;
         //Number of features seen in the DataSet during training
         int num_features;
         //Getter for fitted
         inline bool is_fitted() const {return fitted;}
+        
 
     private:
         /**
@@ -107,7 +115,7 @@ class DecisionTree
          * @param params SplitParam object passing the criterion used, 
          * the threshold computation method and the feature selection policy
          */
-        void fit_(const DataSet& data, Node& node, std::span<int> idx, int depth, const SplitParam& params);
+        //void fit_(const DataSet& data, Node& node, std::span<int> idx, int depth, const SplitParam& params);
         
         /**
          * @brief Recursively build the decision tree
@@ -125,7 +133,7 @@ class DecisionTree
          * @param context SplitContext object passing the RNG if required by 
          * the algorithm
          */
-        void fit_(const DataSet& data, Node& node, std::span<int> idx, int depth, const SplitParam& params, SplitContext& context);
+        void fit_(const DataSet& data, Node& node, std::span<int> idx, int depth, const SplitParam& params, std::optional<std::reference_wrapper<SplitContext>> context = std::nullopt);
 
 
 
@@ -142,6 +150,8 @@ class DecisionTree
         bool fitted = false;
         Node root_node;
         Splitter splitter;
+        friend struct arboria::test::DecisionTreeAccess;
+        
 };
 //end of namespace arboria 
 }

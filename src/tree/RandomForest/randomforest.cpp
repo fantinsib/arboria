@@ -59,6 +59,11 @@ RandomForest::RandomForest(HyperParam hyperParam, std::optional<std::uint32_t> u
         max_samples = *hyperParam.max_samples;
     }
 
+    if (hyperParam.min_sample_split.has_value()){
+        if (*hyperParam.min_sample_split <= 0) throw std::invalid_argument("arboria::tree::RandomForest : min_sample_split argument must be greater than 0");
+        min_sample_split = *hyperParam.min_sample_split;
+    }
+
     trees.reserve(static_cast<size_t>(n_estimators));
     if (!user_seed){
         std::random_device rd;
@@ -215,7 +220,7 @@ void RandomForest::fit_(const DataSet& data, const SplitParam &param, SplitConte
         // then fit tree with param.f_selection = RandomK & 
         // add to the RF list 
         ForestTree forest_tree;
-        HyperParam h_param{.max_depth = max_depth};
+        HyperParam h_param{.max_depth = max_depth, .min_sample_split = min_sample_split};
         forest_tree.tree = std::make_unique<DecisionTree>(h_param);
         forest_tree.in_bag = std::move(seen_idx);
 

@@ -27,14 +27,17 @@ using arboria::ParamBuilder;
 PYBIND11_MODULE(_arboria, m){
 
     py::class_<arboria::DecisionTree>(m, "DecisionTree")
-        .def(py::init([](std::optional<int> max_depth)
+        .def(py::init([](std::optional<int> max_depth,
+                                 std::optional<int> min_sample_split)
                         {        
                         HyperParam hp;
                         if (max_depth.has_value()) hp.max_depth = max_depth;
+                        hp.min_sample_split = min_sample_split;
 
                         return std::make_unique<arboria::DecisionTree>(hp);}
                     ),
-            py::arg("max_depth") = std::nullopt
+            py::arg("max_depth") = std::nullopt,
+            py::arg("min_sample_split") = std::nullopt
     )
 
     .def("_fit",
@@ -146,13 +149,15 @@ PYBIND11_MODULE(_arboria, m){
         .def(py::init([](std::optional<int> n_estimators,
                         std::optional<int> m_try,
                         std::optional<int> max_depth, 
-                        std::optional<float> max_samples, 
+                        std::optional<float> max_samples,
+                        std::optional<int> min_sample_split, 
                         std::optional<std::uint32_t> seed)
                         {        
                         HyperParam hp;
                         hp.n_estimators = n_estimators;
                         hp.mtry = m_try; // value always set during Python init ; must be passed
                         hp.max_samples = max_samples;
+                        hp.min_sample_split = min_sample_split;
                         if (max_depth.has_value()) {
                             hp.max_depth= max_depth;}
 
@@ -162,6 +167,7 @@ PYBIND11_MODULE(_arboria, m){
             py::arg("m_try"),
             py::arg("max_depth") = std::nullopt,
             py::arg("max_samples") = std::nullopt,
+            py::arg("min_sample_split") = std::nullopt,
             py::arg("seed") = std::nullopt
     )
 

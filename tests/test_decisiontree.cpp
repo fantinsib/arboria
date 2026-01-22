@@ -374,8 +374,26 @@ TEST_CASE("DecisionTree - error .fit() - trying to call with uninitialized Split
     HyperParam h_param{.max_depth = 4};
     arboria::DecisionTree tree(h_param);
     
-    SplitParam params;
+    SplitParam params; // uninitialized split
     
     REQUIRE_THROWS_AS(tree.fit(data, params), std::invalid_argument);
 
+}
+
+TEST_CASE("DecisionTree - building with min_sample_split"){
+
+    std::vector<float> X {0,2,1,
+                        7,9,10,
+                        1,1,2,
+                        11, 9, 8,
+                        2,0,1}; 
+    std::vector<float> y {0,1,0,1,0}; //dataset with trivial split
+    
+    arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.min_sample_split = 3, .max_depth = 2};
+    arboria::DecisionTree tree(h_param);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    tree.fit(data, params);
+    REQUIRE(tree.min_sample_split == 3);
+    
 }
