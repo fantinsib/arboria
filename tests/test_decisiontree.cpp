@@ -390,7 +390,7 @@ TEST_CASE("DecisionTree - building with min_sample_split"){
     std::vector<float> y {0,1,0,1,0}; //dataset with trivial split
     
     arboria::DataSet data(X, y, 5, 3);
-    HyperParam h_param{.min_sample_split = 3, .max_depth = 2};
+    HyperParam h_param{.max_depth = 2, .min_sample_split = 3};
     arboria::DecisionTree tree(h_param);
     SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
     tree.fit(data, params);

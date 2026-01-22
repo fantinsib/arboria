@@ -183,7 +183,7 @@ TEST_CASE("RandomForest : min_sample_split"){
 
     DataSet data = make_separable_dataset();
     float min_sample_split = 2;
-    HyperParam h_param{.min_sample_split = min_sample_split, .mtry=2};
+    HyperParam h_param{ .mtry=2, .min_sample_split = min_sample_split};
     RandomForest forest(h_param, 123);
     SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
 
@@ -196,7 +196,7 @@ TEST_CASE("RandomForest : min_sample_split propagation"){
     DataSet data = make_separable_dataset();
     int min_sample_split = 2;
     int n_estimators = 10;
-    HyperParam h_param{.min_sample_split = min_sample_split, .mtry=2, .n_estimators= n_estimators};
+    HyperParam h_param{.mtry=2, .n_estimators= n_estimators, .min_sample_split = min_sample_split};
     RandomForest forest(h_param, 123);
     SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
 
@@ -229,7 +229,7 @@ TEST_CASE("RandomForest : reproductibility"){
     DataSet data(X,y, 6, 3);
     int min_sample_split = 2;
     int n_estimators = 2;
-    HyperParam h_param{.min_sample_split = min_sample_split, .mtry=1, .n_estimators= n_estimators};
+    HyperParam h_param{.mtry=1,.n_estimators= n_estimators, .min_sample_split = min_sample_split,  };
     RandomForest forest1(h_param, 123);
     RandomForest forest2(h_param, 321);
     SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
