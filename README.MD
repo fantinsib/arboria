@@ -11,14 +11,24 @@ This repository contains C++ implementations of tree-based models with Python bi
 This version currently supports :
 
 #### `DecisionTree` (binary classification)
-- `.fit`: fits a tree using the CART algorithm
-- `.predict`: predicts the class of passed samples
+- `.fit`: trains a decision tree using the CART algorithm
+- `.predict`: predicts the labels for input samples
+- Hyperparameters currently include :
+    - max_depth : maximum depth the tree is allowed to reach
+    - min_sample_split : minimum number of sample required in a node to allow a split
 
 
 #### `RandomForest` (binary classification)
 - `.fit`: fits a RandomForest with `n_estimators` trees. Uses RandomK feature selection (`max_features` features). Supports reproducible randomness via `seed`.
-- `.predict` / `.predict_proba`: predicts classes or returns average votes across trees
+- `.predict` / `.predict_proba`: predicts class labels or returns the average class probabilities across all trees
 - `.out_of_bag`: returns accuracy on training samples not bootstrapped during training
+- Hyperparameters currently include :
+    - `n_estimators` : number of trees in the forest
+    - `max_depth` : maximum depth each tree is allowed to reach
+    - `max_features` : number of features randomly selected at each split
+    - `max_samples` : fraction of training set to bootstrap for each tree
+    - `min_sample_split` : minimum number of sample required in a node to allow a split
+    - `seed` : random seed 
 
 ## Installation
 
@@ -42,17 +52,25 @@ pip install .
 
 ## Usage
 
-A demo notebook can be found [here](https://github.com/fantinsib/arboria/blob/main/docs/arboria_demo.ipynb).
+A demo notebook is available : **[arboria_demo.ipynb](https://github.com/fantinsib/arboria/blob/main/docs/arboria_demo.ipynb)**
 
 ````python
-from arboria import DecisionTree, RandomForest
+from arboria import DecisionTree, RandomForest, accuracy
 ````
 
 ### Initializing the models
 
 ````python
-tree = DecisionTree(max_depth = 5)
-rf = RandomForest(n_estimators = 30, max_features = "sqrt", max_depth = 5, seed = 10)
+tree = DecisionTree(max_depth=5, min_sample_split=10)
+
+rf = RandomForest(
+    n_estimators= 80,
+    max_depth= 10, 
+    max_features=6,
+    max_samples= 0.9,
+    min_sample_split=10,
+    seed=10
+)
 ````
 
 ### Fit
@@ -75,13 +93,16 @@ rf.predict_proba(x_test)
 
 ### Evaluate 
 ````python
+# Returns the accuracy score for the predictions :
+accuracy(y_pred, y_test)
+
 # Returns accuracy score on the samples not bootstrapped during training :
 rf.out_of_bag(x_train, y_train)
 ````
 
 ### Additionnal Documentation 
 
-Additionnal [notes](docs/notes/) and [diagrams](docs/diagrams/) can be found in the [docs folder](docs/) of this repository.
+Additional [notes](docs/notes/) and [diagrams](docs/diagrams/) can be found in the [docs folder](docs/) of this repository.
 
 
 ## Roadmap 
@@ -89,7 +110,7 @@ Additionnal [notes](docs/notes/) and [diagrams](docs/diagrams/) can be found in 
 ⚠️ Still work in progress
 
 #### Planned improvements:
-- Additional model parameters (min_samples_split, min_samples_leaf, max_samples, class_weights...)
+- Additional model parameters (min_samples_leaf, class_weights...)
 - Performance optimizations for RandomForest
 - Parallelism
 - Extra-Trees, Honest Trees, Quantile Trees
