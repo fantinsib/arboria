@@ -14,8 +14,8 @@ This version currently supports :
 - `.fit`: trains a decision tree using the CART algorithm
 - `.predict`: predicts the labels for input samples
 - Hyperparameters currently include :
-    - max_depth : maximum depth the tree is allowed to reach
-    - min_sample_split : minimum number of sample required in a node to allow a split
+    - `max_depth` : maximum depth the tree is allowed to reach
+    - `min_sample_split` : minimum number of sample required in a node to allow a split
 
 
 #### `RandomForest` (binary classification)
