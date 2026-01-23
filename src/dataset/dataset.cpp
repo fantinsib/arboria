@@ -7,8 +7,8 @@
 namespace arboria{
 DataSet::DataSet(std::vector<float> X, std::vector<float> Y, int n_rows, int n_cols):
 
-    X_(X),
-    y_(Y),
+    X_(std::move(X)),
+    y_(std::move(Y)),
     n_rows_(n_rows),
     n_cols_(n_cols)
 {

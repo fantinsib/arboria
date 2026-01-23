@@ -21,32 +21,26 @@ namespace split_strategy{
  * @param data A reference to the DataSet containing the data
  * @throws std::invalid_argument if the DataSet is empty, if the col value is illegal
  * @return threshold vector
+ * @note !!! Passed idx must be already sorted
  */
-inline std::vector<float> cart_threshold(const std::span<const int> idx, int col, const arboria::DataSet& data){
+inline std::vector<float> cart_threshold(const std::span<const int> sorted_idx, int col, const arboria::DataSet& data){
 
     if (data.is_empty()) {throw std::invalid_argument("arboria::split_strategy::cart_threshold : DataSet is empty.");}
     if (col < 0) {throw std::invalid_argument("arboria::split_strategy::cart_threshold : column index number must be non-negative.");}
     if (col >= data.n_cols()) {throw std::invalid_argument("arboria::split_strategy::cart_threshold : no such column in the dataset.");}
-    if (idx.size()<2)  {throw std::invalid_argument("arboria::split_strategy::cart_threshold : the idx span must reference at least two values.");}
+    if (sorted_idx.size()<2)  {throw std::invalid_argument("arboria::split_strategy::cart_threshold : the idx span must reference at least two values.");}
 
     //starts by sorting the col -> returns the index of the samples sorted by value along the col
-    std::vector<int> sorted_idx(idx.begin(), idx.end());
-    std::sort(
-        sorted_idx.begin(),
-        sorted_idx.end(),
-        [&](int a, int b) {
-            return data.iloc_x(a, col) < data.iloc_x(b, col);
-        }
-    );
 
-    //Then computes the midpoints
-    std::vector<float> output(sorted_idx.size()-1);
-    for (int i = 0;  i < sorted_idx.size()-1; i ++){
+    std::vector<float> output;
+    output.reserve(sorted_idx.size()-1);
+    for (size_t i = 0;  i < sorted_idx.size()-1; i ++){
 
         float a = data.iloc_x(sorted_idx[i], col);
         float b = data.iloc_x(sorted_idx[i+1], col);
 
-       output[i] = (((a)+(b))/2.f);
+       if (a ==b) continue;
+       output.push_back(((a)+(b))/2.f);
     }
 
     return output;

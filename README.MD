@@ -104,10 +104,54 @@ rf.out_of_bag(x_train, y_train)
 
 Additional [notes](docs/notes/) and [diagrams](docs/diagrams/) can be found in the [docs folder](docs/) of this repository.
 
+## Performance Tests
+
+The chosen benchmark is the `sklearn` algorithm for RandomForest. Test details ([history](test_python/perf/perf_log.md) and [the testing script](test_python/perf/arboria_perf.py) can be found in test_python/perf folder).
+
+**Note** : as parallelism has not yet been implemented in arboria, comparison were made with `sklearn` `n_job` set to 1. 
+
+### Current performance 
+
+On larger datasets, scikit-learn remains significantly faster. On a mid-sized synthetic dataset (5k samples, 25 features), arboria reaches about **77% of scikit-learn training speed** and **~80% of inference speed**. The gap increases as dataset size grows: on the 50k / 30-feature dataset, **arboria reaches 63% of scikit-learn training speed** and is **~2.2× to ~2.9× slower** for inference.
+
+On smaller datasets (Breast Cancer), arboria outperforms scikit-learn, with **~2× faster training** and **~5× faster inference**, largely due to scikit-learn’s higher overhead on small workloads.
+
+---
+
+**Breast Cancer Dataset (569 samples / 30 features)**
+
+|               | Fit   | predict | predict_proba | accuracy  |
+|---------------|-------|---------|---------------|-----------|
+| arboria | 72.71 ms | 0.83 ms | 0.83 ms |  0.9357 |
+| sklearn | 146.58 ms | 4.22 ms | 4.21 ms | 0.9298 |
+| Sk/arb | 202% | 508% | 509% | -
+
+---
+
+**Synthetic 5K samples / 25 features**
+
+|               | Fit   | predict | predict_proba | accuracy  |
+|---------------|-------|---------|---------------|-----------|
+| arboria | 1886.21 ms | 21.95 ms | 22.01 ms |  0.9167 |
+| sklearn | 1447.22 ms | 17.93 ms | 17.78 ms | 0.9260 |
+| Sk/arb  | 77% | 82% | 81% | -
+
+---
+
+**Synthetic 50K samples / 30 features**
+
+|               | Fit   | predict | predict_proba | accuracy  |
+|---------------|-------|---------|---------------|-----------|
+| arboria | 19267.12 ms  | 152.51 ms | 154.03 ms |  0.9607 |
+| sklearn | 30623.22 ms | 342.24 ms | 448.23 ms | 0.9597 |
+| Sk/arb  | 63% | 45% | 34% | -
+
+
+
 
 ## Roadmap 
  
-⚠️ Still work in progress
+⚠️ Work still in progress
 
 #### Planned improvements:
 - Additional model parameters (min_samples_leaf, class_weights...)

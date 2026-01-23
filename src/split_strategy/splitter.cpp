@@ -90,13 +90,19 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
     for (auto col : features){
 
 // ------------------------------------ threshold computation -----------------
-
+        std::vector<int> sorted_idx(idx.begin(), idx.end());
         std::vector<float> thresholds;
-        std::visit([&](const auto& t_compute) {
+        std::visit([&](const auto& t_compute) { //returns the threshold vector
             using T=std::decay_t<decltype(t_compute)>;
 
             if constexpr ((std::is_same_v<T, CART>)) {
-                thresholds = cart_threshold(idx, col, data);
+
+
+                std::sort(sorted_idx.begin(), sorted_idx.end(),
+                [&](int i, int j) {
+                    return data.iloc_x(i, col) < data.iloc_x(j, col);
+                });
+                thresholds = cart_threshold(sorted_idx, col, data);
             }
 
             else if constexpr ((std::is_same_v<T, Random>)){
@@ -115,26 +121,36 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
             
             else throw std::logic_error("aboria::split_strategy::Splitter::best_split : threshold computation parameter is not recognized");
         }, params.t_comp);
+      
+        int l_neg_count = 0;
+        int l_pos_count = 0;
+        int r_neg_count = 0; 
+        int r_pos_count = 0;
 
-        for (float t : thresholds) { //iteration through the thresholds 
-            // Current version -> naive count for each leaf. 
-            // Optimisation to implement later : start with all the 
-            // samples in the right node, iterate through the ordered samples by 
-            // feature and move each sample one by one from right to left
+        for (int i : idx) {
+            int y = data.iloc_y(i);
+            if (y == 1) r_pos_count++;
+            else        r_neg_count++;
+        }
+
+
+
+            size_t p = 0;
+
+            for (float t : thresholds) {
+
+                while (p < sorted_idx.size()) {
+                    int i = sorted_idx[p];
+                    float x = data.iloc_x(i, col);
+                    if (!(x < t)) break; 
+
+                    int y = data.iloc_y(i);
+                    if (y == 1) { l_pos_count++; r_pos_count--; }
+                    else        { l_neg_count++; r_neg_count--; }
+
+                    ++p;
+                }
             
-                int l_neg_count = 0;
-                int l_pos_count = 0;
-                int r_neg_count = 0;
-                int r_pos_count = 0;
-
-                for (int i : idx){
-
-                    const float x = data.iloc_x(i, col);
-                    const int y = data.iloc_y(i); 
-                    
-                    if (x < t) { (y == 1 ? l_pos_count : l_neg_count)++; }
-                    else { (y == 1 ? r_pos_count : r_neg_count)++; } 
-            }
 
             if ((l_pos_count + l_neg_count) == 0 || (r_pos_count + r_neg_count) == 0) {continue;} //ignoring if we have an empty leaf
                 
@@ -142,7 +158,8 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
             SplitStats split_stats{l_pos_count, l_neg_count, r_pos_count, r_neg_count};            
             float score = score_function(params, split_stats);
 
-            if (score < best_score){ //possible improvement : stop the loop if perfect split is found ?
+
+            if (score < best_score){ 
                 
                 best_score = score;
 
@@ -150,6 +167,8 @@ SplitResult Splitter::best_split(std::span<const int> idx, const DataSet& data, 
                 best_split.split_threshold = t;
                 best_split.score = score;
             }
+
+            if (best_split.score == 0) return best_split;
 
         }
     

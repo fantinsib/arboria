@@ -102,27 +102,6 @@ TEST_CASE("cart_threshold - outputs size is idx.size() - 1") {
     REQUIRE(t.size() == 2);
 }
 
-TEST_CASE("cart_threshold - thresholds are computed on sorted values even if idx is unordered") {
-
-    std::vector<float> x{
-        10, 0, 0,
-         2, 0, 0,
-         7, 0, 0
-    };
-    std::vector<float> y{0,1,0};
-
-    DataSet data(x, y, 3, 3);
-
-    std::vector<int> idx{0,2,1};   
-    std::span<const int> s(idx);
-
-
-    auto t = cart_threshold(s, 0, data);
-
-    REQUIRE(t.size() == 2);
-    REQUIRE(t[0] == Catch::Approx(4.5f));
-    REQUIRE(t[1] == Catch::Approx(8.5f));
-}
 
 TEST_CASE("cart_threshold - handles duplicate feature values") {
 
@@ -140,9 +119,8 @@ TEST_CASE("cart_threshold - handles duplicate feature values") {
 
     auto t = cart_threshold(s, 0, data);
 
-    REQUIRE(t.size() == 2);
-    REQUIRE(t[0] == Catch::Approx(1.0f));
-    REQUIRE(t[1] == Catch::Approx(2.0f));
+    REQUIRE(t.size() == 1);
+    REQUIRE(t[0] == Catch::Approx(2.0f));
 }
 
 
