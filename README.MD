@@ -142,8 +142,8 @@ On smaller datasets (Breast Cancer), arboria outperforms scikit-learn, with **~2
 
 |               | Fit   | predict | predict_proba | accuracy  |
 |---------------|-------|---------|---------------|-----------|
-| arboria | 19267.12 ms  | 152.51 ms | 154.03 ms |  0.9607 |
-| sklearn | 30623.22 ms | 342.24 ms | 448.23 ms | 0.9597 |
+| arboria | 30623.22 ms  | 342.24 ms |  448.23 ms |  0.9597 |
+| sklearn | 19267.12 ms |  152.51 ms | 154.03 ms |  0.9607 |
 | Sk/arb  | 63% | 45% | 34% | -
 
 
