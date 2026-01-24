@@ -61,7 +61,8 @@ class RandomForest(_RandomForest):
                  max_features: int | str ="sqrt", 
                  max_depth: int = None, 
                  max_samples: float = None,
-                 min_sample_split: int = None, 
+                 min_sample_split: int = None,
+                 n_jobs: int = 1,
                  seed : int | None = None):
         """
         Random Forest classifier.
@@ -80,6 +81,9 @@ class RandomForest(_RandomForest):
             the total number of samples. 
         min_sample_split : int
             Minimum of samples allowed in a leaf. Default None will set no limit
+        n_jobs : int
+            Number of threads to launch for training. Default is 1, -1 will
+            use the maximum number of threads. 
         seed : int
             Seed of the tree. Default None will result in a random seed.
         """
@@ -89,7 +93,7 @@ class RandomForest(_RandomForest):
             self.mtry = -98
         else:
             self.mtry = max_features
-        return super().__init__(n_estimators = n_estimators, m_try = self.mtry,max_depth= max_depth, min_sample_split = min_sample_split, max_samples = max_samples, seed= seed)
+        return super().__init__(n_estimators = n_estimators, m_try = self.mtry,max_depth= max_depth, min_sample_split = min_sample_split, max_samples = max_samples, n_jobs=n_jobs, seed= seed)
 
     def fit(self, X, y, criterion= 'gini'):
         """

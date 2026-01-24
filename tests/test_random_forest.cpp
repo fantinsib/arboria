@@ -244,3 +244,38 @@ TEST_CASE("RandomForest : reproductibility"){
     REQUIRE(pred1 != pred2);
 
 }
+
+
+
+TEST_CASE("RandomForest : reproductibility under multithreading"){
+
+        std::vector<float> X{
+        2,3,5,
+        2,3,5,
+        4, 6, 10,
+        4, 6, 10,
+        8, 12, 20,
+        8, 12, 20
+
+    };
+    std::vector<float> y{0, 1, 0, 1, 0, 1};
+    DataSet data(X,y, 6, 3);
+    int min_sample_split = 2;
+    int n_estimators = 2;
+    HyperParam h_param{.mtry=1,.n_estimators= n_estimators, .min_sample_split = min_sample_split, .n_jobs =2 };
+    RandomForest forest1(h_param, 123);
+    RandomForest forest2(h_param, 321);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+
+    forest1.fit(data, param);
+    forest2.fit(data, param);
+
+    std::vector<float> sample{4,12,5};
+    std::vector<float> pred1 = forest1.predict_proba(sample);
+    std::vector<float> pred2 = forest2.predict_proba(sample);
+    
+    REQUIRE(pred1 != pred2);
+
+}
+
+

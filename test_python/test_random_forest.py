@@ -118,3 +118,23 @@ def test_random_forest_min_sample_split():
     prob2 = rf2.predict_proba(x_test)
 
     assert np.any(prob1 != prob2)
+
+def test_random_forest_parallelism():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import train_test_split
+
+    bc = load_breast_cancer()
+    X = bc.data.astype(np.float32)  
+    y = bc.target.astype(np.int32) 
+    x_train, x_test, y_train, y_test = train_test_split(X,y, random_state=10)
+
+    rf1 = RandomForest(min_sample_split=10, n_estimators=1, max_depth=6, seed = 10)
+    rf2 = RandomForest(min_sample_split=500, n_estimators=1, max_depth =6, seed = 10)
+
+    rf1.fit(x_train, y_train, criterion="entropy")
+    rf2.fit(x_train, y_train, criterion="entropy")
+
+    prob1 = rf1.predict_proba(x_test)
+    prob2 = rf2.predict_proba(x_test)
+
+    assert np.any(prob1 != prob2)

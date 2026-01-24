@@ -28,6 +28,7 @@ This version currently supports :
     - `max_features` : number of features randomly selected at each split
     - `max_samples` : fraction of training set to bootstrap for each tree
     - `min_sample_split` : minimum number of sample required in a node to allow a split
+    - `n_jobs` : number of threads to launch for training; -1 uses all cores
     - `seed` : random seed 
 
 ## Installation
@@ -69,6 +70,7 @@ rf = RandomForest(
     max_features=6,
     max_samples= 0.9,
     min_sample_split=10,
+    n_jobs = -1,
     seed=10
 )
 ````
@@ -106,15 +108,17 @@ Additional [notes](docs/notes/) and [diagrams](docs/diagrams/) can be found in t
 
 ## Performance Tests
 
-The chosen benchmark is the `sklearn` algorithm for RandomForest. Test details ([history](test_python/perf/perf_log.md) and [the testing script](test_python/perf/arboria_perf.py) can be found in test_python/perf folder).
+The chosen benchmark is the `sklearn` algorithm for RandomForest. Test details ([history](test_python/perf/perf_logs) and [the testing script](test_python/perf/arboria_perf.py) can be found in test_python/perf folder).
 
-**Note** : as parallelism has not yet been implemented in arboria, comparison were made with `sklearn` `n_job` set to 1. 
+**Note** : the following test was ran with `n_jobs = -1` for both arboria and sklearn. This setting can lead to high performance variability from one run to another due to OS scheduling noise, especially on large datasets.Therefore, each test was executed four times and the reported results below correspond to the average across all.
 
 ### Current performance 
 
-On larger datasets, scikit-learn remains significantly faster. On a mid-sized synthetic dataset (5k samples, 25 features), arboria reaches about **77% of scikit-learn training speed** and **~80% of inference speed**. The gap increases as dataset size grows: on the 50k / 30-feature dataset, **arboria reaches 63% of scikit-learn training speed** and is **~2.2× to ~2.9× slower** for inference.
+`sklearn` remains dominant on the large dataset (50k samples, 30 features), where arboria reaches **87% of sklearn training performance** on average, and significantly lower inference performance **(≈ 19–20%** of sklearn speed for predict and predict_proba). The considerably lower performance for inference is mainly due to the fact that multiprocessing for inference has not yet been implemented in arboria.
 
-On smaller datasets (Breast Cancer), arboria outperforms scikit-learn, with **~2× faster training** and **~5× faster inference**, largely due to scikit-learn’s higher overhead on small workloads.
+On the intermediate-sized dataset (5k samples, 25 features), arboria achieves comparable or slightly better performance than scikit-learn for both training and inference (around **10-15%** faster). 
+
+On small datasets, arboria outperforms scikit-learn in all measured operations (**8x faster training speed, 10x faster inference**). This can be explained by the higher fixed overhead incurred by scikit-learn, which becomes dominant at small problem sizes.
 
 ---
 
@@ -122,9 +126,9 @@ On smaller datasets (Breast Cancer), arboria outperforms scikit-learn, with **~2
 
 |               | Fit   | predict | predict_proba | accuracy  |
 |---------------|-------|---------|---------------|-----------|
-| arboria | 72.71 ms | 0.83 ms | 0.83 ms |  0.9357 |
-| sklearn | 146.58 ms | 4.22 ms | 4.21 ms | 0.9298 |
-| Sk/arb | 202% | 508% | 509% | -
+| sklearn | 138.605 ms | 13.7925 ms | 13.735 ms | 0.9298  |
+| arboria | 16.7575 ms | 1.18 ms | 1.1825 ms | 0.9415 |
+| Sk/arb | 827% | 1169% | 1162% | -
 
 ---
 
@@ -132,9 +136,9 @@ On smaller datasets (Breast Cancer), arboria outperforms scikit-learn, with **~2
 
 |               | Fit   | predict | predict_proba | accuracy  |
 |---------------|-------|---------|---------------|-----------|
-| arboria | 1886.21 ms | 21.95 ms | 22.01 ms |  0.9167 |
-| sklearn | 1447.22 ms | 17.93 ms | 17.78 ms | 0.9260 |
-| Sk/arb  | 77% | 82% | 81% | -
+| sklearn | 420.2725 ms | 26.4475 ms | 26.135 ms | 0.9260 |
+| arboria | 358.85 ms | 23.6475 ms | 22.9625 ms | 0.9213 |
+| Sk/arb  | 117% | 112% | 114% | -
 
 ---
 
@@ -142,10 +146,9 @@ On smaller datasets (Breast Cancer), arboria outperforms scikit-learn, with **~2
 
 |               | Fit   | predict | predict_proba | accuracy  |
 |---------------|-------|---------|---------------|-----------|
-| arboria | 30623.22 ms  | 342.24 ms |  448.23 ms |  0.9597 |
-| sklearn | 19267.12 ms |  152.51 ms | 154.03 ms |  0.9607 |
-| Sk/arb  | 63% | 45% | 34% | -
-
+| sklearn | 4538.71 ms  | 54.5775 ms | 54.56 ms | 0.9607 |
+| arboria | 5242.64 ms | 290.01 ms | 272.05 ms | 0.9602 |
+| Sk/arb  | 87% | 19% | 20% | -
 
 
 
@@ -156,6 +159,5 @@ On smaller datasets (Breast Cancer), arboria outperforms scikit-learn, with **~2
 #### Planned improvements:
 - Additional model parameters (min_samples_leaf, class_weights...)
 - Performance optimizations for RandomForest
-- Parallelism
 - Extra-Trees, Honest Trees, Quantile Trees
 

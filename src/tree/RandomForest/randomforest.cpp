@@ -6,6 +6,7 @@
 
 #include "randomforest.h"
 #include "dataset/dataset.h"
+#include "helpers/helpers.h"
 #include "split_strategy/sampling/sampling.h"
 #include "split_strategy/types/split_context.h"
 #include "split_strategy/types/split_hyper.h"
@@ -13,19 +14,23 @@
 #include "split_strategy/types/split_hyper.h"
 #include "tree/DecisionTree/DecisionTree.h"
 
+#include <__atomic/atomic.h>
 #include <iostream>
 #include <cstdint>
 #include <algorithm>
 #include <cstdint>
 #include <cstddef>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <random>
 #include <stdexcept>
+#include <thread>
 
 using arboria::sampling::bootstrap;
 using arboria::ForestTree;
+using arboria::helpers::derive_seed;
 
 namespace arboria{
 
@@ -64,6 +69,25 @@ RandomForest::RandomForest(HyperParam hyperParam, std::optional<std::uint32_t> u
         min_sample_split = *hyperParam.min_sample_split;
     }
 
+    if (hyperParam.n_jobs.has_value()){
+        const unsigned hw_u = std::thread::hardware_concurrency();
+
+        const size_t hw = (hw_u == 0) ? std::numeric_limits<size_t>::max() : static_cast<size_t>(hw_u);
+
+        if (*hyperParam.n_jobs < -1 || *hyperParam.n_jobs == 0) 
+        {
+            throw std::invalid_argument("arboria::tree::RandomForest : n_jobs argument must be a positive int or equals to -1");
+        }
+
+        if (*hyperParam.n_jobs == -1 ) {
+            n_jobs = std::min(static_cast<size_t>(n_estimators), hw);
+        }
+        else{
+            n_jobs = *hyperParam.n_jobs;
+        }
+    }
+    else {n_jobs = 1;}
+
     trees.reserve(static_cast<size_t>(n_estimators));
     if (!user_seed){
         std::random_device rd;
@@ -74,28 +98,58 @@ RandomForest::RandomForest(HyperParam hyperParam, std::optional<std::uint32_t> u
 
 void RandomForest::fit(const DataSet &data, const SplitParam& params){
 
-    SplitContext context(seed_.value());
+    const size_t n_rows = static_cast<size_t>(data.n_rows());
+    const size_t n_cols = static_cast<size_t>(data.n_cols());
+    const auto* rk = std::get_if<RandomK>(&params.f_selection);
+    if (!rk) {
+        throw std::logic_error("arboria::tree::RandomForest::fit_ : f_selection is not RandomK");
+    }
+    if (!rk->mtry) {
+        throw std::invalid_argument("arboria::tree::RandomForest::fit_ : RandomK::mtry is not defined");
+    }
 
-    fit_(data, params, context);
+    const int mtry = *rk->mtry;  
+
+    if (mtry <= 0) {
+        throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter must be > 0");
+    }
+
+    if (n_cols < mtry) {
+        throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter can't be larger than the number of features in the dataset");
+    }
+
+    num_features = data.n_cols();
+    trees.clear();
+    trees.resize(static_cast<size_t>(n_estimators));
+
+
+    std::atomic<size_t> next{0};
+
+    auto worker = [&](){
+        for (;;) {
+            
+            size_t i = next.fetch_add(1);
+            if (i >= n_estimators) break;
+            SplitContext context(derive_seed(seed_.value(), i));
+            fit_(i, data, params, context);
+        }
+    };
+
+    std::vector<std::thread>pool;
+    pool.reserve(n_jobs);
+
+    for (size_t i = 0 ; i < n_jobs; i++){
+        pool.emplace_back(worker);
+    }
+
+    for (auto& t : pool){
+        t.join();
+    }
 
     fitted = true;
     num_features = data.n_cols();
 }
-/*
-void RandomForest::fit(const DataSet &data){
 
-    SplitParam params; 
-    params.f_selection = FeatureSelection::RandomK;
-    params.mtry = mtry;
-    int n_rows = data.n_rows();
-    SplitContext context(seed_);
-
-    fit_(data, params, context);
-
-    fitted = true;
-    num_features = data.n_cols();
-}
-*/
 std::vector<float> RandomForest::predict_proba(std::span<const float> samples) const{
     if (!fitted || num_features == 0) throw std::invalid_argument("arboria::RandomForest::predict_proba -> RandomForest has not been fitted");
     if (trees.size() < 1) throw std::logic_error("arboria::RandomForest::predict_proba -> no trees were found in the forest");
@@ -176,37 +230,13 @@ PRIVATE METHODS
 --------------------------------------------------------------------------------------
 */
 
-void RandomForest::fit_(const DataSet& data, const SplitParam &param, SplitContext &context){
+void RandomForest::fit_(size_t i, const DataSet& data, const SplitParam &param, SplitContext &context){
 
-    const size_t n_rows = static_cast<size_t>(data.n_rows());
-    const size_t n_cols = static_cast<size_t>(data.n_cols());
-    const auto* rk = std::get_if<RandomK>(&param.f_selection);
-    if (!rk) {
-        throw std::logic_error("arboria::tree::RandomForest::fit_ : f_selection is not RandomK");
-    }
-    if (!rk->mtry) {
-        throw std::invalid_argument("arboria::tree::RandomForest::fit_ : RandomK::mtry is not defined");
-    }
-
-    const int mtry = *rk->mtry;  
-
-    if (mtry <= 0) {
-        throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter must be > 0");
-    }
-
-    if (n_cols < mtry) {
-        throw std::invalid_argument("arboria::tree::RandomForest::fit_ : mtry parameter can't be larger than the number of features in the dataset");
-    }
-
-
-
-    size_t bootstrap_size = max_samples.has_value() ? static_cast<size_t>(
-            static_cast<double>(max_samples.value()) * static_cast<double>(n_rows)) :  n_rows;
-    num_features = data.n_cols();
-    trees.clear();
-    trees.reserve(static_cast<size_t>(n_estimators));
-    for (int i = 0; i < n_estimators; i++){ //per tree
         //Bootstrapping of dataset rows :
+        const size_t n_rows = static_cast<size_t>(data.n_rows());
+        size_t bootstrap_size = max_samples.has_value() ? static_cast<size_t>(
+        static_cast<double>(max_samples.value()) * static_cast<double>(n_rows)) :  n_rows;
+
         std::vector<size_t> boostrapped_indices = bootstrap(static_cast<size_t>(n_rows), bootstrap_size, context.rng);
         //TODO : temporary conversion size_t -> int for
         // passing from bootstrap to DecisionTree.fit(); 
@@ -224,11 +254,8 @@ void RandomForest::fit_(const DataSet& data, const SplitParam &param, SplitConte
         forest_tree.tree = std::make_unique<DecisionTree>(h_param);
         forest_tree.in_bag = std::move(seen_idx);
 
-        trees.push_back(std::move(forest_tree));
-        trees.back().tree->fit(data, passed_idx, param, context);
-
-    }
-
+        trees[i]=(std::move(forest_tree));
+        trees[i].tree->fit(data, passed_idx, param, context);
 
 }
 

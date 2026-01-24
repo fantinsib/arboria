@@ -150,7 +150,8 @@ PYBIND11_MODULE(_arboria, m){
                         std::optional<int> m_try,
                         std::optional<int> max_depth, 
                         std::optional<float> max_samples,
-                        std::optional<int> min_sample_split, 
+                        std::optional<int> min_sample_split,
+                        std::optional<int> n_jobs,
                         std::optional<std::uint32_t> seed)
                         {        
                         HyperParam hp;
@@ -160,6 +161,12 @@ PYBIND11_MODULE(_arboria, m){
                         hp.min_sample_split = min_sample_split;
                         if (max_depth.has_value()) {
                             hp.max_depth= max_depth;}
+                        if (n_jobs.has_value()){
+                            hp.n_jobs = n_jobs;
+                        }
+                        else {
+                            hp.n_jobs = 1;
+                        }
 
                         return std::make_unique<arboria::RandomForest>(hp, seed);}
                     ),
@@ -168,6 +175,7 @@ PYBIND11_MODULE(_arboria, m){
             py::arg("max_depth") = std::nullopt,
             py::arg("max_samples") = std::nullopt,
             py::arg("min_sample_split") = std::nullopt,
+            py::arg("n_jobs") = std::nullopt,
             py::arg("seed") = std::nullopt
     )
 

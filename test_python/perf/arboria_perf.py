@@ -112,7 +112,7 @@ def bench_sklearn_rf(
             min_samples_split=min_samples_split if min_samples_split is not None else 2,
             bootstrap=True,
             random_state=seed,
-            n_jobs=1,
+            n_jobs=-1,
         )
 
     holder = {"m": None}
@@ -169,6 +169,7 @@ def bench_arboria_rf(
             max_depth=max_depth,
             max_samples=max_samples,
             min_sample_split=min_sample_split,
+            n_jobs=-1,
             seed=seed,
         )
 
@@ -273,6 +274,22 @@ def main():
     )
 
     datasets["synthetic_50k_30f"] = (ensure_contig_f32(X3), ensure_i32(y3))
+
+    # Synthetic 500K
+    X4, y4 = make_classification(
+        n_samples=500000,
+        n_features=30,
+        n_informative=10,
+        n_redundant=10,
+        n_clusters_per_class=2,
+        flip_y=0.02,
+        class_sep=1.0,
+        random_state=0,
+    )
+
+    datasets["synthetic_500k_30f"] = (ensure_contig_f32(X4), ensure_i32(y4))
+
+
 
     seed = 10
     warmup = 1

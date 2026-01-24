@@ -159,6 +159,7 @@ class RandomForest{
     * any randomized split logic such as RandomK) draw randomness from the
     * provided SplitContext.
     *
+    * @param t Fits the t tree in the forest
     * @param data DataSet containing input samples and target values.
     * @param param SplitParam defining the splitting policy (criterion, threshold
     * computation method, and feature selection strategy).
@@ -166,7 +167,7 @@ class RandomForest{
     * training (e.g. RNG / seed).
     * @note This method clears and rebuilds the internal tree container.
     */
-    void fit_(const DataSet& data, const SplitParam& param, SplitContext &context);
+    void fit_(size_t t, const DataSet& data, const SplitParam& param, SplitContext &context);
     //Wheter the RF model has already been fitted
     bool fitted = false;
     //Number of features seen during training. 
@@ -175,6 +176,8 @@ class RandomForest{
     // is set by std::random_devices
     std::optional<std::uint32_t> seed_;
     std::vector<ForestTree> trees;
+    // Parallelism
+    int n_jobs; 
 
     //Accessor for tests
     friend struct arboria::test::RandomForestAccess;

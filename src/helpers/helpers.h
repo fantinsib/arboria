@@ -111,5 +111,10 @@ inline float accuracy(const std::span<const int> a, const std::span<const int> b
 
 }
 
+inline uint64_t derive_seed(uint64_t seed, size_t i) {
+    return seed + 0x9E3779B97F4A7C15ULL * i;
+}
+
+
 }
 }
