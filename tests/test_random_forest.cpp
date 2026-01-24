@@ -231,8 +231,8 @@ TEST_CASE("RandomForest : reproductibility"){
     int n_estimators = 2;
     HyperParam h_param{.mtry=1,.n_estimators= n_estimators, .min_sample_split = min_sample_split,  };
     RandomForest forest1(h_param, 123);
-    RandomForest forest2(h_param, 321);
-    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+    RandomForest forest2(h_param, 123);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{1});
 
     forest1.fit(data, param);
     forest2.fit(data, param);
@@ -241,7 +241,7 @@ TEST_CASE("RandomForest : reproductibility"){
     std::vector<float> pred1 = forest1.predict_proba(sample);
     std::vector<float> pred2 = forest2.predict_proba(sample);
     
-    REQUIRE(pred1 != pred2);
+    REQUIRE(pred1 == pred2);
 
 }
 
@@ -264,8 +264,8 @@ TEST_CASE("RandomForest : reproductibility under multithreading"){
     int n_estimators = 2;
     HyperParam h_param{.mtry=1,.n_estimators= n_estimators, .min_sample_split = min_sample_split, .n_jobs =2 };
     RandomForest forest1(h_param, 123);
-    RandomForest forest2(h_param, 321);
-    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{2});
+    RandomForest forest2(h_param, 123);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Gini{}, CART{}, RandomK{1});
 
     forest1.fit(data, param);
     forest2.fit(data, param);
@@ -274,7 +274,7 @@ TEST_CASE("RandomForest : reproductibility under multithreading"){
     std::vector<float> pred1 = forest1.predict_proba(sample);
     std::vector<float> pred2 = forest2.predict_proba(sample);
     
-    REQUIRE(pred1 != pred2);
+    REQUIRE(pred1 == pred2);
 
 }
 
