@@ -14,7 +14,7 @@
 #include "split_strategy/types/split_hyper.h"
 #include "tree/DecisionTree/DecisionTree.h"
 
-#include <__atomic/atomic.h>
+#include <atomic>
 #include <iostream>
 #include <cstdint>
 #include <algorithm>
