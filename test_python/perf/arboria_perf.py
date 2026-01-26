@@ -3,7 +3,7 @@ Compare sklearn vs arboria RandomForest performance (fit / predict / predict_pro
 
 Usage
 -----
-python bench_sklearn_vs_arboria.py
+python arboria_perf.py
 
 Notes on API matching
 ---------------------
@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import time
 import statistics as stats
+import csv
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Tuple, Optional
 
@@ -29,7 +30,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 
 from arboria import RandomForest as ArboriaRandomForest
-
 
 
 # helpers
@@ -89,13 +89,12 @@ def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float((np.asarray(y_true) == np.asarray(y_pred)).mean())
 
 
-
 # Benchmark drivers
 def bench_sklearn_rf(
     X_train: np.ndarray, y_train: np.ndarray,
     X_test: np.ndarray, y_test: np.ndarray, *,
     n_estimators: int,
-    max_features,                   
+    max_features,
     max_depth: Optional[int],
     max_samples: Optional[float],
     min_samples_split: Optional[int],
@@ -153,10 +152,10 @@ def bench_arboria_rf(
     X_train: np.ndarray, y_train: np.ndarray,
     X_test: np.ndarray, y_test: np.ndarray, *,
     n_estimators: int,
-    max_features: int | str,         
+    max_features: int | str,
     max_depth: Optional[int],
     max_samples: Optional[float],
-    min_sample_split: Optional[int], 
+    min_sample_split: Optional[int],
     seed: Optional[int],
     criterion: str,
     warmup: int,
@@ -213,9 +212,8 @@ def print_block(title: str, r_sk: BenchResult, r_ar: BenchResult) -> None:
 
     def speedup(sk, ar):
         return f"{sk / ar:6.2f}x" if ar > 0 else "n/a"
-    
-    print("\n")
 
+    print("\n")
     print("\n" + "=" * 86)
     print(title)
     print("=" * 86)
@@ -244,64 +242,35 @@ def main():
     # Datasets (binary)
     datasets: Dict[str, Tuple[np.ndarray, np.ndarray]] = {}
 
-    # Breast cancer (small standard)
-    X, y = load_breast_cancer(return_X_y=True)
-    datasets["breast_cancer"] = (ensure_contig_f32(X), ensure_i32(y))
+    sample_sizes = [500, 1_000, 2_500, 5_000, 10_000, 25_000, 50_000, 100_000, 150_000, 200_000, 250_000]
 
-    # Synthetic 5K
-    X2, y2 = make_classification(
-        n_samples=5000,
-        n_features=25,
-        n_informative=10,
-        n_redundant=10,
-        n_clusters_per_class=2,
-        flip_y=0.02,
-        class_sep=1.0,
-        random_state=0,
-    )
-    datasets["synthetic_5k_25f"] = (ensure_contig_f32(X2), ensure_i32(y2))
-
-    # Synthetic 50K
-    X3, y3 = make_classification(
-        n_samples=50000,
-        n_features=30,
-        n_informative=10,
-        n_redundant=10,
-        n_clusters_per_class=2,
-        flip_y=0.02,
-        class_sep=1.0,
-        random_state=0,
-    )
-
-    datasets["synthetic_50k_30f"] = (ensure_contig_f32(X3), ensure_i32(y3))
-
-    # Synthetic 500K
-    X4, y4 = make_classification(
-        n_samples=500000,
-        n_features=30,
-        n_informative=10,
-        n_redundant=10,
-        n_clusters_per_class=2,
-        flip_y=0.02,
-        class_sep=1.0,
-        random_state=0,
-    )
-
-    datasets["synthetic_500k_30f"] = (ensure_contig_f32(X4), ensure_i32(y4))
-
+    for n in sample_sizes:
+        Xn, yn = make_classification(
+            n_samples=n,
+            n_features=30,
+            n_informative=10,
+            n_redundant=10,
+            n_clusters_per_class=2,
+            flip_y=0.02,
+            class_sep=1.0,
+            random_state=0,
+        )
+        datasets[f"synthetic_{n}_30f"] = (ensure_contig_f32(Xn), ensure_i32(yn))
 
 
     seed = 10
     warmup = 1
-    repeats = 5
+    repeats = 10
 
-    n_estimators = 200
-    max_depth = 10
+    n_estimators = 100
+    max_depth = 8
     max_samples = 0.9
-    min_samples_split = 10         
-    min_sample_split = 10          
+    min_samples_split = 10
+    min_sample_split = 10
 
     max_features_str = "sqrt"
+
+    rows = []
 
     for name, (X, y) in datasets.items():
         X_train, X_test, y_train, y_test = train_test_split(
@@ -311,7 +280,7 @@ def main():
         r_sk = bench_sklearn_rf(
             X_train, y_train, X_test, y_test,
             n_estimators=n_estimators,
-            max_features="sqrt",           
+            max_features="sqrt",
             max_depth=max_depth,
             max_samples=max_samples,
             min_samples_split=min_samples_split,
@@ -323,7 +292,7 @@ def main():
         r_ar = bench_arboria_rf(
             X_train, y_train, X_test, y_test,
             n_estimators=n_estimators,
-            max_features=max_features_str,  
+            max_features=max_features_str,
             max_depth=max_depth,
             max_samples=max_samples,
             min_sample_split=min_sample_split,
@@ -338,6 +307,69 @@ def main():
             r_sk,
             r_ar,
         )
+
+        rows.append({
+            "dataset": name,
+            "lib": "sklearn",
+            "n_train": int(X_train.shape[0]),
+            "n_test": int(X_test.shape[0]),
+            "n_features": int(X_train.shape[1]),
+            "n_estimators": int(n_estimators),
+            "max_depth": int(max_depth) if max_depth is not None else "",
+            "max_features": "sqrt",
+            "max_samples": float(max_samples) if max_samples is not None else "",
+            "min_samples_split": int(min_samples_split) if min_samples_split is not None else "",
+            "seed": int(seed) if seed is not None else "",
+            "warmup": int(warmup),
+            "repeats": int(repeats),
+            "fit_ms_med": r_sk.fit_ms_med,
+            "fit_ms_q1": r_sk.fit_ms_q1,
+            "fit_ms_q3": r_sk.fit_ms_q3,
+            "pred_ms_med": r_sk.pred_ms_med,
+            "pred_ms_q1": r_sk.pred_ms_q1,
+            "pred_ms_q3": r_sk.pred_ms_q3,
+            "proba_ms_med": r_sk.proba_ms_med,
+            "proba_ms_q1": r_sk.proba_ms_q1,
+            "proba_ms_q3": r_sk.proba_ms_q3,
+            "test_acc": r_sk.test_acc,
+        })
+
+        rows.append({
+            "dataset": name,
+            "lib": "arboria",
+            "n_train": int(X_train.shape[0]),
+            "n_test": int(X_test.shape[0]),
+            "n_features": int(X_train.shape[1]),
+            "n_estimators": int(n_estimators),
+            "max_depth": int(max_depth) if max_depth is not None else "",
+            "max_features": str(max_features_str),
+            "max_samples": float(max_samples) if max_samples is not None else "",
+            "min_samples_split": int(min_sample_split) if min_sample_split is not None else "",
+            "seed": int(seed) if seed is not None else "",
+            "warmup": int(warmup),
+            "repeats": int(repeats),
+            "fit_ms_med": r_ar.fit_ms_med,
+            "fit_ms_q1": r_ar.fit_ms_q1,
+            "fit_ms_q3": r_ar.fit_ms_q3,
+            "pred_ms_med": r_ar.pred_ms_med,
+            "pred_ms_q1": r_ar.pred_ms_q1,
+            "pred_ms_q3": r_ar.pred_ms_q3,
+            "proba_ms_med": r_ar.proba_ms_med,
+            "proba_ms_q1": r_ar.proba_ms_q1,
+            "proba_ms_q3": r_ar.proba_ms_q3,
+            "test_acc": r_ar.test_acc,
+        })
+
+    # write recap CSV
+    out_csv = "bench_results_4_tests.csv"
+    fieldnames = list(rows[0].keys()) if rows else []
+    with open(out_csv, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fieldnames)
+        w.writeheader()
+        w.writerows(rows)
+
+    print("\n")
+    print(f"Wrote recap CSV: {out_csv}")
 
 
 if __name__ == "__main__":

@@ -159,15 +159,36 @@ std::vector<float> RandomForest::predict_proba(std::span<const float> samples) c
     size_t num_samples = samples.size()/nf;
     std::vector<float> preds(num_samples);
     
+    std::atomic<size_t> next{0};
 
-    for (size_t s = 0; s<num_samples; s++){
-        float sum_votes =0; 
-        auto sample = samples.subspan(s*nf, nf);
-        for (const auto& t : trees){
-            sum_votes += t.tree->predict_one(sample);
+    auto worker = [&]() {
+        for (;;){
+            size_t i = next.fetch_add(1);
+            if (i>= num_samples) break; 
+            float sum_votes =0; 
+            auto sample = samples.subspan(i*nf, nf);
+            for (const auto& t : trees){
+                sum_votes += t.tree->predict_one(sample);
+            }
+            preds[i] = sum_votes/static_cast<float>(n_estimators);
         }
-        preds[s] = sum_votes/static_cast<float>(n_estimators);
+
+        };
+
+        std::vector<std::thread> pool;
+        pool.reserve(n_jobs);
+
+        for (size_t i = 0; i < n_jobs; i++){
+            pool.emplace_back(worker);
+
         }
+
+        for (auto& t : pool){
+            t.join() ;
+
+        }
+    
+
     
     return preds;
 

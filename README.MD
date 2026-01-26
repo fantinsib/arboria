@@ -110,46 +110,59 @@ Additional [notes](docs/notes/) and [diagrams](docs/diagrams/) can be found in t
 
 The chosen benchmark is the `sklearn` algorithm for RandomForest. Test details ([history](test_python/perf/perf_logs) and [the testing script](test_python/perf/arboria_perf.py) can be found in test_python/perf folder).
 
-**Note** : the following test was ran with `n_jobs = -1` for both arboria and sklearn. This setting can lead to high performance variability from one run to another due to OS scheduling noise, especially on large datasets.Therefore, each test was executed four times and the reported results below correspond to the average across all.
+**Note** : the following test were ran with parameters :
+
+```python
+n_estimators = 100	
+max_depth = 8
+max_features = "sqrt"
+max_samples = 0.9
+min_samples_split = 10
+n_jobs = -1
+```
+for sklearn and arboria with 1 warmup and 10 repeats. All datasets are synthetically generated with 30 features, using the `make_classification` function from sklearn. 
 
 ### Current performance 
 
-`sklearn` remains dominant on the large dataset (50k samples, 30 features), where arboria reaches **87% of sklearn training performance** on average, and significantly lower inference performance **(≈ 19–20%** of sklearn speed for predict and predict_proba). The considerably lower performance for inference is mainly due to the fact that multiprocessing for inference has not yet been implemented in arboria.
+---
+**Training**
 
-On the intermediate-sized dataset (5k samples, 25 features), arboria achieves comparable or slightly better performance than scikit-learn for both training and inference (around **10-15%** faster). 
+On intermediate/large datasets (from 25k samples to 250k), `scikit-learn` still outperforms `arboria` for training speed by around **15-25%**. On the largest setting (250k samples), arboria for instance reaches around **83%** of scikit-learn’s training speed.
 
-On small datasets, arboria outperforms scikit-learn in all measured operations (**8x faster training speed, 10x faster inference**). This can be explained by the higher fixed overhead incurred by scikit-learn, which becomes dominant at small problem sizes.
+On intermediate/small datasets (roughly 2.5k to 10k samples), arboria starts benefitting from the high fixed overhead performance costs of sklearn. It achieves comparable or slightly better performance for  training, from around *15% to 80%* faster speed depending on dataset size.
+
+Finally, on small datasets, arboria outperforms sklearn, reaching up to 7–8× faster training. This difference is again largely the result of the overhead of sklearn.
+
+![Training Speed](docs/diagrams/training_speed_graph.png)
+
+---
+**Inference**
+
+Arboria has a slight edge for inference across all tested dataset. Although the gap narrows as the number of samples increases, arboria consistently achieves faster prediction and prediction-probability times, with speedups ranging from ~1.1× to ~1.7× on datasets larger than 50k samples. This is again realistically due to the overheads of Sklearn.
+
+---
+![Training Speed](docs/diagrams/inference_speed_graph.png)
 
 ---
 
-**Breast Cancer Dataset (569 samples / 30 features)**
+**Detailed results**
 
-|               | Fit   | predict | predict_proba | accuracy  |
-|---------------|-------|---------|---------------|-----------|
-| sklearn | 138.605 ms | 13.7925 ms | 13.735 ms | 0.9298  |
-| arboria | 16.7575 ms | 1.18 ms | 1.1825 ms | 0.9415 |
-| Sk/arb | 827% | 1169% | 1162% | -
+- Datasets are composed of 30 features
+- Train/test decomposition is 70%/30%
+- Percentages are calculated as the time taken by sklearn divided by the time taken by arboria in ms.
 
----
-
-**Synthetic 5K samples / 25 features**
-
-|               | Fit   | predict | predict_proba | accuracy  |
-|---------------|-------|---------|---------------|-----------|
-| sklearn | 420.2725 ms | 26.4475 ms | 26.135 ms | 0.9260 |
-| arboria | 358.85 ms | 23.6475 ms | 22.9625 ms | 0.9213 |
-| Sk/arb  | 117% | 112% | 114% | -
-
----
-
-**Synthetic 50K samples / 30 features**
-
-|               | Fit   | predict | predict_proba | accuracy  |
-|---------------|-------|---------|---------------|-----------|
-| sklearn | 4538.71 ms  | 54.5775 ms | 54.56 ms | 0.9607 |
-| arboria | 5242.64 ms | 290.01 ms | 272.05 ms | 0.9602 |
-| Sk/arb  | 87% | 19% | 20% | -
-
+Number of samples|	Fit|	Predict	|Predict Proba|
+|-----------|-------|-------|-------|
+| 500	    | 725%	| 5255%	| 5567% |
+| 1000	    | 360%	| 3268%	| 3406% |
+| 2500	    | 179%	| 1345%	| 1421% |
+| 5000	    | 114%	| 633%	| 654%  |
+| 10 000	| 115%	| 411%	| 413%  |
+| 25 000	| 88%	| 396%	| 397%  |
+| 50 000	| 74%	| 173%	| 177%  |
+| 100 000	| 92%	| 144%	| 146%  |
+| 150 000	| 80%	| 115%	| 112%  |
+| 250 000	| 80%	| 118%	| 109%  |
 
 
 ## Roadmap 
