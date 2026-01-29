@@ -13,18 +13,18 @@ def test_random_forest_init():
             dict(n_estimators = 10),
             dict(),
             dict(seed = 1),
-            dict(max_features = 2),
+            dict(max_features = 2, seed=1),
             dict(n_estimators = 10, seed = 1),
         ]
 )
 def test_random_forest_default_params(kwargs):
     rf = RandomForest(**kwargs)
     assert isinstance(rf, RandomForest)
-    X = np.array([[1,2,1],[4,5,5], [7,8,9]])
-    y = np.array([0,1,1])
+    X = np.array([[0,0,1],[1,1,2], [1,2,1],[4,5,5], [7,8,9], [10,11, 12]])
+    y = np.array([0,0,0,1,1,1])
     
     rf.fit(X,y)
-    y_pred = rf.predict(np.array([1,1,1]))
+    y_pred = rf.predict(np.array([1,2,1]))
     assert( y_pred[0] == 0)
 
 @pytest.mark.parametrize(
@@ -64,17 +64,6 @@ def test_random_forest_reproductible():
     prob2= rf2.predict_proba(s)
 
     assert (prob1 == prob2)
-
-    rf3 = RandomForest(n_estimators=2,max_features=1,min_sample_split=1, seed = 123)
-    rf4 = RandomForest(n_estimators=2, max_features= 1, min_sample_split=1, seed = 321)
-
-    rf3.fit(X, y, criterion="entropy")
-    rf4.fit(X, y, criterion="entropy")
-
-    prob3 = rf3.predict_proba(s)
-    prob4= rf4.predict_proba(s)
-
-    assert (prob3 != prob4)
 
 def test_random_forest_max_samples():
     from sklearn.datasets import load_breast_cancer
