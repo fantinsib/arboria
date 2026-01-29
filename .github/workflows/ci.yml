@@ -21,6 +21,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           pip install pytest numpy sphinx sphinx-rtd-theme
+          pip install .
 
       - name: Configure (CMake)
         run: |
