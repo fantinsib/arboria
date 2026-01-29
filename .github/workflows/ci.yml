@@ -16,6 +16,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build g++
+      
+      - name: Install Python dep
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pytest numpy sphinx sphinx-rtd-theme
 
       - name: Configure (CMake)
         run: |
@@ -29,3 +34,7 @@ jobs:
       - name: Test (CTest)
         run: |
           ctest --test-dir build --output-on-failure
+
+      - name: Build doc
+        run: |
+          sphinx-build -b html docs/source docs/build
