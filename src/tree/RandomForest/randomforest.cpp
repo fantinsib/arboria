@@ -28,6 +28,7 @@
 #include <random>
 #include <stdexcept>
 #include <thread>
+#include <variant>
 
 using arboria::sampling::bootstrap;
 using arboria::ForestTree;
@@ -202,14 +203,21 @@ std::vector<float> RandomForest::predict_proba(std::span<const float> samples) c
 }
 
 
-std::vector<int> RandomForest::predict(std::span<const float> sample) const {
+std::vector<float> RandomForest::predict(std::span<const float> sample) const {
 
     std::vector<float> prob_pred = predict_proba(sample);
-    std::vector<int> class_pred(prob_pred.size());
+    
 
-    std::transform(prob_pred.begin(), prob_pred.end(), class_pred.begin(),
-                    [](float x){return (x >= 0.5) ? 1 : 0;});
-    return class_pred;
+    if (std::holds_alternative<Classification>(type_)){
+        std::vector<float> class_pred(prob_pred.size());
+        std::transform(prob_pred.begin(), prob_pred.end(), class_pred.begin(),
+                        [](float x){return (x >= 0.5) ? 1 : 0;});
+                        return class_pred;
+    }
+    if (std::holds_alternative<Regression>(type_)){
+        return prob_pred;
+    }
+        
 }
 
 float RandomForest::out_of_bag(const DataSet &data) const {
@@ -236,7 +244,7 @@ float RandomForest::out_of_bag(const DataSet &data) const {
         for (const ForestTree& t : trees){
 
             if (!t.in_bag[row]){
-                int pred = t.tree->predict_one(s);
+                float pred = t.tree->predict_one(s);
                 sum_pred = sum_pred + pred;
                 num_pred++;   
             }

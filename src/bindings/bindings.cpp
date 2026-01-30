@@ -11,6 +11,7 @@
 #include <pybind11/numpy.h>
 #include <stdexcept>
 #include <cstdint>
+#include <variant>
 
 #include "dataset/dataset.h"
 #include "split_strategy/types/split_param.h"
@@ -78,18 +79,28 @@ PYBIND11_MODULE(_arboria, m){
 
 
     //----------------------Param Build
-                //----------Criterion
-                Criterion crit;
-                if (criterion == "gini") crit = Gini{};
-                else if (criterion == "entropy") crit = Entropy{};
-                else throw std::runtime_error("Unknown split criterion passed to fit.");
+
 
                 //----------Threshold
                 ThresholdComputation threshold = CART{};
                 //----------Feature
                 FeatureSelection feature = AllFeatures{};
                 TreeType type = self.type_;
-                SplitParam param = ParamBuilder(TreeModel::DecisionTreeClassifier, 
+                TreeModel model; 
+                //----------Criterion
+                Criterion crit;
+                if (std::holds_alternative<Classification>(type)){
+                    if (criterion == "gini") crit = Gini{};
+                    else if (criterion == "entropy") crit = Entropy{};
+                    else throw std::runtime_error("Unknown split criterion passed to fit for classification.");
+                }
+                if (std::holds_alternative<Regression>(type)){
+                    if (criterion == "sse") crit = SSE{};
+                    else throw std::runtime_error("Unknown split criterion passed to fit for regression.");
+                }
+
+
+                SplitParam param = ParamBuilder(TreeModel::DecisionTree, 
                     type,
                     crit, 
                     threshold , 
@@ -99,7 +110,7 @@ PYBIND11_MODULE(_arboria, m){
                 self.fit(data, param);
             },
             
-            py::arg("X"), py::arg("y"), py::arg("criterion") = "gini",
+            py::arg("X"), py::arg("y"), py::arg("criterion"),
             R"doc(
                 Fit the decision tree.
 
@@ -130,7 +141,7 @@ PYBIND11_MODULE(_arboria, m){
             const size_t n_cols = static_cast<size_t>(xb.size);
             const float* x_ptr = static_cast<const float*>(xb.ptr);
             std::vector<float> X_vec(x_ptr, x_ptr + n_cols);
-            return std::vector<int>{self.predict_one(X_vec)};
+            return std::vector<float>{self.predict_one(X_vec)};
             }
 
             else if (ndim == 2){
@@ -179,7 +190,7 @@ PYBIND11_MODULE(_arboria, m){
                         TreeType type_;
                         if (type == "regression") type_ = Regression{};
                         else if (type == "classification") type_ = Classification{};
-                        else throw std::invalid_argument("DecisionTree constructor : invalid TreeType");
+                        else throw std::invalid_argument("RandomForest constructor : invalid TreeType");
 
 
                         return std::make_unique<arboria::RandomForest>(hp, type_, seed);}
@@ -213,19 +224,27 @@ PYBIND11_MODULE(_arboria, m){
 //----------------------Param Build
 
 
-                //----------Criterion
-                Criterion crit;
-                if (criterion == "gini") crit = Gini{};
-                else if (criterion == "entropy") crit = Entropy{};
-                else throw std::runtime_error("Unknown split criterion passed to fit.");
+
 
                 //----------Threshold
                 ThresholdComputation threshold = CART{};
                 //----------Feature
                 FeatureSelection feature = RandomK{m_try};
-                TreeType type = Classification{};
+                TreeType type = self.type_;
+                
+                //----------Criterion
+                Criterion crit;
+                if (std::holds_alternative<Classification>(type)){
+                    if (criterion == "gini") crit = Gini{};
+                    else if (criterion == "entropy") crit = Entropy{};
+                    else throw std::runtime_error("Unknown split criterion passed to fit for classification.");
+                }
+                if (std::holds_alternative<Regression>(type)){
+                    if (criterion == "sse") crit = SSE{};
+                    else throw std::runtime_error("Unknown split criterion passed to fit for regression.");
+                }
 
-                SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, 
+                SplitParam param = ParamBuilder(TreeModel::RandomForest, 
                     type,
                     crit, 
                     threshold , 

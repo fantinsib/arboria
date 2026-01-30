@@ -108,7 +108,8 @@ inline float calculate_mean(std::span<const int> idx, const std::vector<float>& 
         t_sum += targets[i];
         n_count++;
     }
-    return t_sum/n_count;
+    if (n_count > 0) return t_sum/n_count;
+    else throw std::invalid_argument("arboria::helpers::calculate_mean : passed idx is empty");
 
 
 }

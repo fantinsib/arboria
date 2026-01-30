@@ -5,7 +5,5 @@
 
 
 enum class TreeModel {
-    DecisionTreeClassifier, 
-    RandomForestClassifier, 
-    DecisionTreeRegressor,
-    RandomForestRegressor};
+    DecisionTree,
+    RandomForest};

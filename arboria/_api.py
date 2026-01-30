@@ -176,7 +176,7 @@ class RandomForestRegressor(_RandomForest):
             type="regression",
         )
 
-    def fit(self, X, y, criterion= 'gini'):
+    def fit(self, X, y, criterion= 'sse'):
         """
         Fit the Random Forest.
 
@@ -341,7 +341,7 @@ class DecisionTreeRegressor(_DecisionTree):
             type="regression",
         )
 
-    def fit(self, X, y, criterion="gini"):
+    def fit(self, X, y, criterion="sse"):
         """
         Fit the decision tree.
 

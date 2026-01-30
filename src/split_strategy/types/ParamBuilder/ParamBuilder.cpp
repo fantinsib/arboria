@@ -8,6 +8,7 @@
 #include "ParamBuilder.h"
 #include <optional>
 #include <stdexcept>
+#include <variant>
 
 
 namespace arboria{
@@ -22,35 +23,19 @@ SplitParam ParamBuilder(const TreeModel model,
                         std::optional<FeatureSelection> feature)
 {
 
-    Task task;
-    Family family; 
-
-    if (model == TreeModel::DecisionTreeClassifier || model == TreeModel::DecisionTreeRegressor){
-        family = Family::DecisionTree;
-
-    }
-    else if (model == TreeModel::RandomForestClassifier || model == TreeModel::RandomForestRegressor){
-        family = Family::RandomForest;
-    }
-
-    if (model == TreeModel::DecisionTreeClassifier || model == TreeModel::RandomForestClassifier){
-        task = Task::Classification;
-    }
-
-    else if (model == TreeModel::DecisionTreeRegressor || model == TreeModel::RandomForestRegressor){
-        task = Task::Regression;
-    }
 
 
-    if (family == Family::DecisionTree){
+    if (model == TreeModel::DecisionTree){
         
         if (!type.has_value()){
-            if (task == Task::Regression) type = Regression{};
-            if (task == Task::Classification) type = Classification{};
+            throw std::invalid_argument("ParamBuilder : TreeModel must be specified to avoid ambiguity");
         }
         
         if (!crit.has_value()){
-            crit = Gini{};
+            if (std::holds_alternative<Classification>(*type))
+                {crit = Gini{};}
+            if (std::holds_alternative<Regression>(*type))
+                {crit = SSE{};}
         }
         if (!threshold.has_value()){
             threshold = CART{};
@@ -70,15 +55,17 @@ SplitParam ParamBuilder(const TreeModel model,
     }
 
 
-    if (family == Family::RandomForest){
+    if (model == TreeModel::RandomForest){
             
         if (!type.has_value()){
-            if (task == Task::Regression) type = Regression{};
-            if (task == Task::Classification) type = Classification{};
+            throw std::invalid_argument("ParamBuilder : TreeModel must be specified to avoid ambiguity");
         }
         
         if (!crit.has_value()){
-            crit = Gini{};
+            if (std::holds_alternative<Classification>(*type))
+                {crit = Gini{};}
+            if (std::holds_alternative<Regression>(*type))
+                {crit = SSE{};}
         }
         if (!threshold.has_value()){
             threshold = CART{};

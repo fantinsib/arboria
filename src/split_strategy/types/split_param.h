@@ -41,9 +41,9 @@ using ThresholdComputation = std::variant<Undefined, CART, Random, Quantile>;
 struct Gini {};
 //Uses Entropy as impurity parameter
 struct Entropy{};
-struct MSE{};
+struct SSE{};
 
-using Criterion = std::variant<Undefined, Gini, Entropy, MSE>;
+using Criterion = std::variant<Undefined, Gini, Entropy, SSE>;
 
 
 

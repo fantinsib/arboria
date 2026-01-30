@@ -328,6 +328,8 @@ SplitResult Splitter::best_split_regression(std::span<const int> idx, const Data
                 ++p;
 
                 }
+
+                if (nL == 0 || nR == 0) continue; //ignore if we have an empty leaf
             
          //--------------------------------
             RegStats split_stats{nL, nR, y_ssL, y_ssR, y_sL, y_sR};
@@ -376,7 +378,7 @@ float Splitter::score_function(const SplitParam& params, const ClfStats& stats) 
                 return 1.f;
             }
         
-        else throw std::logic_error("arboria::split_strategy::Splitter::score_function : no scoring criterion was passed.");
+        else throw std::logic_error("arboria::split_strategy::Splitter::score_function : no classification scoring criterion was passed.");
         return 1.f;
         }, params.criterion);
 
@@ -388,11 +390,11 @@ float Splitter::score_function(const SplitParam& params, const RegStats& stats) 
 
 // ------------------------------------ score function -----------------
 
-    //score_function depending on the param passed (Gini by default)
+    //score_function depending on the param passed 
     return std::visit([&](const auto& crit_function) {
         using T = std::decay_t<decltype(crit_function)>;
 
-        if constexpr (std::is_same_v<T, MSE>) {
+        if constexpr (std::is_same_v<T, SSE>) {
             return split::weighted_sse( stats.nL,  stats.nR,  stats.y_sL,  stats.y_sR,  stats.y_ssL, stats.y_ssR);
         }
     
@@ -401,7 +403,7 @@ float Splitter::score_function(const SplitParam& params, const RegStats& stats) 
                 return 1.f;
             }
         
-        else throw std::logic_error("arboria::split_strategy::Splitter::score_function : no scoring criterion was passed.");
+        else throw std::logic_error("arboria::split_strategy::Splitter::score_function : no regression scoring criterion was passed.");
         return 1.f;
         }, params.criterion);
 

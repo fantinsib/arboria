@@ -69,7 +69,7 @@ TEST_CASE("RandomForest : constructor validation - values not passed") {
         TreeType type = Classification{};
         Criterion crit = Gini{};
         ThresholdComputation t_comp = CART{};
-        SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, type, crit, t_comp, f_selection);
+        SplitParam param = ParamBuilder(TreeModel::RandomForest, type, crit, t_comp, f_selection);
 
         forest.fit(data, param);
 
@@ -80,7 +80,7 @@ TEST_CASE("RandomForest : constructor validation - values not passed") {
 TEST_CASE("RandomForest : fit then predict basic usage") {
     DataSet data = make_separable_dataset();
 
-    SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, Classification{}, Gini{}, CART{}, RandomK{2});
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Classification{}, Gini{}, CART{}, RandomK{2});
     HyperParam h_param{2, 25, 4};
     RandomForest forest(h_param, Classification{},123);
     forest.fit(data, param);
@@ -102,10 +102,10 @@ TEST_CASE("RandomForest : fit then predict basic usage") {
         REQUIRE(p <= 1.0f);
     }
 
-    std::vector<int> preds = forest.predict(samples);
+    std::vector<float> preds = forest.predict(samples);
     REQUIRE(preds.size() == size_t(2));
-    REQUIRE(preds[0] == 0);
-    REQUIRE(preds[1] == 1);
+    REQUIRE(preds[0] == 0.f);
+    REQUIRE(preds[1] == 1.f);
 }
 
 TEST_CASE("RandomForest : predict error before fit") {
@@ -120,7 +120,7 @@ TEST_CASE("RandomForest : predict_proba error on wrong dimension") {
     DataSet data = make_separable_dataset();
     HyperParam h_param{2, 25, 4};
     RandomForest forest(h_param,Classification{}, 123);
-    SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, Classification{}, Gini{}, CART{}, RandomK{2});
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Classification{}, Gini{}, CART{}, RandomK{2});
     forest.fit(data, param);
 
     std::vector<float> bad_samples{0, 0, 0, 1};
@@ -131,7 +131,7 @@ TEST_CASE("RandomForest : mtry larger than feature count") {
     DataSet data = make_separable_dataset();
     HyperParam h_param{8, 25, 4};
     RandomForest forest(h_param, Classification{},123);
-    SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, Classification{} ,Gini{}, CART{}, RandomK{10});
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Classification{} ,Gini{}, CART{}, RandomK{10});
 
     REQUIRE_THROWS_AS(forest.fit(data, param), std::invalid_argument);
 }
@@ -140,7 +140,7 @@ TEST_CASE("RandomForest : out_of_bag basic range") {
     DataSet data = make_separable_dataset();
     HyperParam h_param{2, 20, 4};
     RandomForest forest(h_param, Classification{},123);
-    SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, Classification{}, Gini{}, CART{}, RandomK{2});
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Classification{}, Gini{}, CART{}, RandomK{2});
 
     forest.fit(data, param);
 
@@ -153,7 +153,7 @@ TEST_CASE("RandomForest : out_of_bag error on empty data") {
     DataSet data = make_separable_dataset();
     HyperParam h_param{2, 20, 4};
     RandomForest forest(h_param,Classification{}, 123);
-    SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, Classification{} , Gini{}, CART{}, RandomK{2});
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Classification{} , Gini{}, CART{}, RandomK{2});
 
     forest.fit(data, param);
 
@@ -171,7 +171,7 @@ TEST_CASE("RandomForest : max_samples"){
     float max_sample = 0.2;
     HyperParam h_param{2, 3, 4, max_sample};
     RandomForest forest(h_param,Classification{}, 123);
-    SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, Classification{} , Gini{}, CART{}, RandomK{2});
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Classification{} , Gini{}, CART{}, RandomK{2});
 
     forest.fit(data, param);
 
@@ -186,7 +186,7 @@ TEST_CASE("RandomForest : min_sample_split"){
     float min_sample_split = 2;
     HyperParam h_param{ .mtry=2, .min_sample_split = min_sample_split};
     RandomForest forest(h_param, Classification{},123);
-    SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, Classification{} , Gini{}, CART{}, RandomK{2});
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Classification{} , Gini{}, CART{}, RandomK{2});
 
     forest.fit(data, param);
 
@@ -199,7 +199,7 @@ TEST_CASE("RandomForest : min_sample_split propagation"){
     int n_estimators = 10;
     HyperParam h_param{.mtry=2, .n_estimators= n_estimators, .min_sample_split = min_sample_split};
     RandomForest forest(h_param, Classification{},123);
-    SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, Classification{} , Gini{}, CART{}, RandomK{2});
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Classification{} , Gini{}, CART{}, RandomK{2});
 
     forest.fit(data, param);
 
@@ -233,7 +233,7 @@ TEST_CASE("RandomForest : reproductibility"){
     HyperParam h_param{.mtry=1,.n_estimators= n_estimators, .min_sample_split = min_sample_split,  };
     RandomForest forest1(h_param,Classification{}, 123);
     RandomForest forest2(h_param,Classification{}, 123);
-    SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, Classification{} ,Gini{}, CART{}, RandomK{1});
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Classification{} ,Gini{}, CART{}, RandomK{1});
 
     forest1.fit(data, param);
     forest2.fit(data, param);
@@ -266,7 +266,7 @@ TEST_CASE("RandomForest : reproductibility under multithreading"){
     HyperParam h_param{.mtry=1,.n_estimators= n_estimators, .min_sample_split = min_sample_split, .n_jobs =2 };
     RandomForest forest1(h_param,Classification{}, 123);
     RandomForest forest2(h_param, Classification{},123);
-    SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, Classification{} , Gini{}, CART{}, RandomK{1});
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Classification{} , Gini{}, CART{}, RandomK{1});
 
     forest1.fit(data, param);
     forest2.fit(data, param);

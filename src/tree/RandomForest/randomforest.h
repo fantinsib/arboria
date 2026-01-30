@@ -81,7 +81,7 @@ class RandomForest{
     * @note This method does not modify the state of the model
     * @note The decision threshold is currently fixed at 0.5.
     */
-    std::vector<int> predict(std::span<const float> sample) const;
+    std::vector<float> predict(std::span<const float> sample) const;
 
     /**
     * @brief Predict class probabilities for a batch of samples.

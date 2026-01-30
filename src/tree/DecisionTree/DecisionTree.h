@@ -76,7 +76,7 @@ class DecisionTree
          * and training feature differ 
          * @return the predicted class 
          */
-        int predict_one(const std::span<const float> sample) const;
+        float predict_one(const std::span<const float> sample) const;
         
         /**
          * @brief Predict the class of a set of samples
@@ -90,7 +90,7 @@ class DecisionTree
          * if samples dimensions are incompatible with training dataset dimensions.
          * @return a vector of int of the predicted class
          */
-        std::vector<int> predict(const std::span<const float> samples) const;
+        std::vector<float> predict(const std::span<const float> samples) const;
      
         //Maximum depth allowed for the construction of the DecisionTree
         std::optional<int>max_depth;
@@ -146,7 +146,7 @@ class DecisionTree
          * @param node the current node 
          * @return the predicted class
          */
-        int predict_one_(const std::span<const float> sample, const Node& node) const;
+        float predict_one_(const std::span<const float> sample, const Node& node) const;
         
         bool fitted = false;
         Node root_node;
