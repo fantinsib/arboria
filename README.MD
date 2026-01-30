@@ -124,7 +124,7 @@ for sklearn and arboria with 1 warmup and 10 repeats. All datasets are synthetic
 
 ### Current performance 
 
----
+***
 **Training**
 
 On intermediate/large datasets (from 25k samples to 250k), `scikit-learn` still outperforms `arboria` for training speed by around **15-25%**. On the largest setting (250k samples), arboria for instance reaches around **83%** of scikit-learn’s training speed.
@@ -135,15 +135,15 @@ Finally, on small datasets, arboria outperforms sklearn, reaching up to 7–8× 
 
 ![Training Speed](docs/diagrams/training_speed_graph.png)
 
----
+***
 **Inference**
 
 Arboria has a slight edge for inference across all tested dataset. Although the gap narrows as the number of samples increases, arboria consistently achieves faster prediction and prediction-probability times, with speedups ranging from ~1.1× to ~1.7× on datasets larger than 50k samples. This is again realistically due to the overheads of Sklearn.
 
----
+***
 ![Training Speed](docs/diagrams/inference_speed_graph.png)
 
----
+***
 
 **Detailed results**
 
