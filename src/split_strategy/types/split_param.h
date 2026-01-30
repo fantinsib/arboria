@@ -58,7 +58,7 @@ using Criterion = std::variant<Undefined, Gini, Entropy, SSE>;
  *  - how features are selected
  *
  * @param type Tree family type {Regression, Classification}
- * @param criterion A criterion to use in {Gini, Entropy}
+ * @param criterion A criterion to use in {Gini, Entropy, SSE}
  * @param t_comp The threshold computation method {CART, Random, Quantile}
  * @param f_selection The feature selection method {AllFeatures, RandomK}
  * @param hparam The hyperparameters that need to be passed to the loop
