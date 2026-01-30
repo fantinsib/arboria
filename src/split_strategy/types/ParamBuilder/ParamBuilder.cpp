@@ -11,13 +11,44 @@
 
 
 namespace arboria{
+
+enum class Task {Regression, Classification};
+enum class Family {DecisionTree, RandomForest};
+
 SplitParam ParamBuilder(const TreeModel model, 
+                        std::optional<TreeType> type, 
                         std::optional<Criterion> crit ,
                         std::optional<ThresholdComputation> threshold, 
                         std::optional<FeatureSelection> feature)
 {
 
-    if (model == TreeModel::DecisionTree){
+    Task task;
+    Family family; 
+
+    if (model == TreeModel::DecisionTreeClassifier || model == TreeModel::DecisionTreeRegressor){
+        family = Family::DecisionTree;
+
+    }
+    else if (model == TreeModel::RandomForestClassifier || model == TreeModel::RandomForestRegressor){
+        family = Family::RandomForest;
+    }
+
+    if (model == TreeModel::DecisionTreeClassifier || model == TreeModel::RandomForestClassifier){
+        task = Task::Classification;
+    }
+
+    else if (model == TreeModel::DecisionTreeRegressor || model == TreeModel::RandomForestRegressor){
+        task = Task::Regression;
+    }
+
+
+    if (family == Family::DecisionTree){
+        
+        if (!type.has_value()){
+            if (task == Task::Regression) type = Regression{};
+            if (task == Task::Classification) type = Classification{};
+        }
+        
         if (!crit.has_value()){
             crit = Gini{};
         }
@@ -30,6 +61,7 @@ SplitParam ParamBuilder(const TreeModel model,
         }
         
         SplitParam param;
+        param.type = *type;
         param.criterion = *crit;
         param.t_comp = *threshold;
         param.f_selection = *feature;
@@ -37,7 +69,14 @@ SplitParam ParamBuilder(const TreeModel model,
         return param;
     }
 
-    if (model == TreeModel::RandomForest){
+
+    if (family == Family::RandomForest){
+            
+        if (!type.has_value()){
+            if (task == Task::Regression) type = Regression{};
+            if (task == Task::Classification) type = Classification{};
+        }
+        
         if (!crit.has_value()){
             crit = Gini{};
         }
@@ -50,6 +89,7 @@ SplitParam ParamBuilder(const TreeModel model,
         }
         
         SplitParam param;
+        param.type = *type;
         param.criterion = *crit;
         param.t_comp = *threshold;
         param.f_selection = *feature;

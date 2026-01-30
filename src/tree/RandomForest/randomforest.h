@@ -43,7 +43,7 @@ class RandomForest{
 
     public:
     //Constructor for the RandomForest
-    RandomForest(HyperParam hyperParam, std::optional<uint32_t> seed = std::nullopt);
+    RandomForest(HyperParam hyperParam, TreeType type, std::optional<uint32_t> seed = std::nullopt);
    
     /**
     * @brief Fits the RandomForest model on a dataset with customs
@@ -141,7 +141,10 @@ class RandomForest{
         if (max_samples.has_value()) return max_samples.value();
             else return std::nullopt;}
 
-    private:
+    TreeType type_;
+
+
+private:
     //Number of features to be sampled at each split 
     int mtry;
     //Number of trees in the forest

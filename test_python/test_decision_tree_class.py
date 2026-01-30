@@ -1,17 +1,17 @@
-from arboria import DecisionTree, accuracy
+from arboria import DecisionTreeClassifier, accuracy
 import pytest 
 import numpy as np
 
 def test_decision_tree_instanciation():
-    tree = DecisionTree(max_depth=5)
-    assert isinstance(tree, DecisionTree)
+    tree = DecisionTreeClassifier(max_depth=5)
+    assert isinstance(tree, DecisionTreeClassifier)
 
 def test_decision_tree_fit():
 
     X = np.array([[1,2,1],[4,5,5], [7,8,9]])
     y = np.array([0,1,1])
 
-    tree = DecisionTree(max_depth=5)
+    tree = DecisionTreeClassifier(max_depth=5)
     tree.fit(X,y)
     y_pred = tree.predict(np.array([1,1,1]))
     assert( y_pred[0] == 0)
@@ -20,7 +20,7 @@ def test_decision_tree_default_args():
     X = np.array([[1,2,1],[4,5,5], [7,8,9]])
     y = np.array([0,1,1])
 
-    tree = DecisionTree() # fits the tree with no arguments
+    tree = DecisionTreeClassifier() # fits the tree with no arguments
     tree.fit(X,y)
     y_pred = tree.predict(np.array([1,1,1]))
     assert( y_pred[0] == 0)
@@ -29,7 +29,7 @@ def test_decision_tree_min_sample_split():
     X = np.array([[1,2,1],[4,5,5], [7,8,9]])
     y = np.array([0,1,1])
 
-    tree = DecisionTree(min_sample_split=5) # fits the tree with no arguments
+    tree = DecisionTreeClassifier(min_sample_split=5) # fits the tree with no arguments
     tree.fit(X,y)
 
 def test_decision_tree_min_sample_effective():
@@ -41,8 +41,8 @@ def test_decision_tree_min_sample_effective():
     y = bc.target.astype(np.int32) 
     x_train, x_test, y_train, y_test = train_test_split(X,y, random_state=10)
 
-    tree1 = DecisionTree(min_sample_split=400)
-    tree2 = DecisionTree(min_sample_split=2)
+    tree1 = DecisionTreeClassifier(min_sample_split=400)
+    tree2 = DecisionTreeClassifier(min_sample_split=2)
 
     tree1.fit(x_train, y_train)
     tree2.fit(x_train, y_train)

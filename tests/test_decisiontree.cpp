@@ -25,9 +25,9 @@ TEST_CASE("DecisionTree :  predict_one() basic usage - fit") {
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
     
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param, Classification{});
 
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
     
     tree.fit(data, params);
 
@@ -49,9 +49,16 @@ TEST_CASE("DecisionTree :  predict_one() basic usage - entropy") {
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
     
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param, Classification{});
 
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree,  Entropy{});
+    SplitParam params = arboria::ParamBuilder(
+    TreeModel::DecisionTreeClassifier,
+    std::nullopt,        // type
+    Criterion{Entropy{}},// crit
+    std::nullopt,        // threshold
+    std::nullopt         // feature
+);
+
     
     tree.fit(data, params);
 
@@ -74,9 +81,9 @@ SECTION("Class 1 pred") {
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
     
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     tree.fit(data, params);
 
@@ -95,9 +102,9 @@ SECTION("Class 2 pred") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     tree.fit(data, params);
 
@@ -118,8 +125,8 @@ TEST_CASE("DecisionTree : instanciation without max_depth"){
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param;
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
-    arboria::DecisionTree tree(h_param);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
+    arboria::DecisionTree tree(h_param, Classification{});
     tree.fit(data, params);
 
     REQUIRE(tree.is_fitted() == true);
@@ -137,9 +144,9 @@ TEST_CASE("DecisionTree :  predict_one() :predict from duplicate row") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     tree.fit(data, params);
 
@@ -165,9 +172,9 @@ TEST_CASE("DecisionTree :  predict_one() : Duplicate samples & unique class") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param, Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     tree.fit(data, params);
     std::vector<float> sample {10,11,12};
@@ -185,9 +192,9 @@ TEST_CASE("DecisionTree :  predict_one() :unsplitable data with unbalanced class
     
     arboria::DataSet data(X, y, 5, 3); 
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     tree.fit(data, params);
     std::vector<float> sample {10,11,12};
@@ -204,9 +211,9 @@ TEST_CASE("DecisionTree :  predict_one() : unsplitable data with balanced classe
     
     arboria::DataSet data(X, y, 4, 3); 
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param, Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     tree.fit(data, params);
     std::vector<float> sample { 0,2,1};
@@ -221,9 +228,9 @@ TEST_CASE("DecisionTree : error - one sample") {
     
     arboria::DataSet data(X, y, 1, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     REQUIRE_THROWS_AS(tree.fit(data, params), std::invalid_argument);
 
@@ -239,9 +246,9 @@ TEST_CASE("DecisionTree : predict_one() error - trying to predict from non fitte
     
     arboria::DataSet data(X, y, 4, 3); 
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     std::vector<float> sample {10,11,12};
     REQUIRE_THROWS_AS(tree.predict_one(sample), std::invalid_argument);
@@ -260,9 +267,9 @@ TEST_CASE("DecisionTree - .predict() - basic usage") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     tree.fit(data, params);
     
@@ -293,9 +300,9 @@ TEST_CASE("DecisionTree - .predict() - unique sample") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     tree.fit(data, params);
     
@@ -321,9 +328,9 @@ TEST_CASE("DecisionTree - error .predict() - not fitted") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
     
     std::vector<float> samples_to_predict{1,2,0,
                                         0,-1,-2,
@@ -346,9 +353,9 @@ TEST_CASE("DecisionTree - error .predict() - dimension mismatch") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
 
     tree.fit(data, params);
     
@@ -372,7 +379,7 @@ TEST_CASE("DecisionTree - error .fit() - trying to call with uninitialized Split
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
     SplitParam params; // uninitialized split
     
@@ -391,8 +398,8 @@ TEST_CASE("DecisionTree - building with min_sample_split"){
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 2, .min_sample_split = 3};
-    arboria::DecisionTree tree(h_param);
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    arboria::DecisionTree tree(h_param,Classification{});
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTreeClassifier);
     tree.fit(data, params);
     REQUIRE(tree.min_sample_split == 3);
     

@@ -10,6 +10,7 @@
 #include "helpers/helpers.h"
 #include "split_strategy/types/split_context.h"
 #include "split_strategy/types/split_hyper.h"
+#include "split_strategy/types/split_param.h"
 #include "tree/TreeModel.h"
 
 namespace arboria::test { struct DecisionTreeAccess; }  
@@ -31,7 +32,7 @@ class DecisionTree
         * @param max_depth Maximum allowed depth of the tree.
         *        
         */
-        DecisionTree(HyperParam h_param);
+        DecisionTree(HyperParam h_param, TreeType type);
         
         /**
         * @brief Fit the decision tree on a dataset.
@@ -98,7 +99,7 @@ class DecisionTree
         int num_features;
         //Getter for fitted
         inline bool is_fitted() const {return fitted;}
-        
+        TreeType type_; 
 
     private:
         /**
@@ -150,6 +151,7 @@ class DecisionTree
         bool fitted = false;
         Node root_node;
         Splitter splitter;
+
         friend struct arboria::test::DecisionTreeAccess;
         
 };

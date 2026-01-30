@@ -1,6 +1,7 @@
 #ifndef NODE_H
 #define NODE_H
 #include <memory>
+#include <variant>
 #include <vector>
 
 namespace arboria{
@@ -19,7 +20,7 @@ public:
     Node();
     int feature_index;
     float threshold;
-    int predicted_class;
+    float leaf_value;
 
     bool is_leaf = true;
 

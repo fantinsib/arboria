@@ -4,6 +4,7 @@
 #include "split_strategy/types/split_context.h"
 #include "split_strategy/types/split_hyper.h"
 #include "split_strategy/types/split_param.h"
+#include "tree/TreeModel.h"
 
 
 #include <algorithm>
@@ -18,7 +19,7 @@
 
 namespace arboria {
 
-DecisionTree::DecisionTree(HyperParam h_param)
+DecisionTree::DecisionTree(HyperParam h_param, TreeType type)
 {
     if (h_param.max_depth.has_value()){
         if (*h_param.max_depth <= 0 && *h_param.max_depth != -99 && *h_param.max_depth != -98) throw std::invalid_argument("arboria::tree::DecisionTree : max_depth argument must be greater than or equal 0");
@@ -29,6 +30,10 @@ DecisionTree::DecisionTree(HyperParam h_param)
         min_sample_split = *h_param.min_sample_split;
     }
 
+    if (std::holds_alternative<Classification>(type) || std::holds_alternative<Regression>(type)){
+    type_ = type;
+    }
+    else throw std::invalid_argument("DecisionTree constructor : invalid type");
 
 }
 
@@ -101,7 +106,7 @@ std::vector<int> DecisionTree::predict(const std::span<const float> samples) con
 int DecisionTree::predict_one_(const std::span<const float> sample, const Node& node) const{
 
 
-    if (node.is_leaf) {return node.predicted_class;}
+    if (node.is_leaf) {return node.leaf_value;}
 
     if (!node.is_valid(num_features)) {
         throw std::logic_error("arboria::DecisionTree::predict_one_ -> Invalid node reached");
@@ -129,12 +134,22 @@ void DecisionTree::fit_(const DataSet& data,
     //lambda function to stop iteration :
     auto end_branch= [&](){
         node.is_leaf = true;
-        std::pair<int,int>count = helpers::count_classes(idx, data.y());
-        int pos_count = count.first;
-        int neg_count = count.second;
 
-        (pos_count >= neg_count) ? node.predicted_class= 1 : node.predicted_class=0 ; // ">=" : in case of tie break, node predicted class = 1
-        return;
+        if (std::holds_alternative<Classification>(params.type)){
+            std::pair<int,int>count = helpers::count_classes(idx, data.y());
+            int pos_count = count.first;
+            int neg_count = count.second;
+
+            (pos_count >= neg_count) ? node.leaf_value= 1 : node.leaf_value=0 ; // ">=" : in case of tie break, node predicted class = 1
+            return;
+        }
+
+        if (std::holds_alternative<Regression>(params.type)){
+
+            float mean = helpers::calculate_mean(idx,data.y());
+            node.leaf_value = mean;
+            return;
+        }
     };
 
     std::pair<int,int>count = helpers::count_classes(idx, data.y());

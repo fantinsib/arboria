@@ -1,7 +1,10 @@
 
 
-#pragma once 
+#pragma once
+
 #include "tree/TreeModel.h"
+#include "split_strategy/types/split_param.h"
+#include <optional>
 
 
 namespace arboria{
@@ -35,6 +38,7 @@ namespace arboria{
  * @throws std::logic_error If @p model is not supported by this builder.
  */
 SplitParam ParamBuilder(const TreeModel model,
+                        std::optional<TreeType> type = std::nullopt,
                         std::optional<Criterion> crit = std::nullopt,
                         std::optional<ThresholdComputation> threshold= std::nullopt, 
                         std::optional<FeatureSelection> feature = std::nullopt);

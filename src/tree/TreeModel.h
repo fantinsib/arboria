@@ -1,3 +1,11 @@
 #pragma once
 
-enum class TreeModel {DecisionTree, RandomForest};
+// Improvement : duplicate TreeType info both as Tree attribute
+//and passed to Param; logic to fix 
+
+
+enum class TreeModel {
+    DecisionTreeClassifier, 
+    RandomForestClassifier, 
+    DecisionTreeRegressor,
+    RandomForestRegressor};

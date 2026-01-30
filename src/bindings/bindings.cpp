@@ -13,10 +13,11 @@
 #include <cstdint>
 
 #include "dataset/dataset.h"
+#include "split_strategy/types/split_param.h"
 #include "tree/DecisionTree/DecisionTree.h"
 #include "split_criterion/entropy.h"
 #include "split_criterion/gini.h"
-#include "split_strategy/types/split_param.h"
+#include "tree/TreeModel.h"
 #include "split_strategy/types/ParamBuilder/ParamBuilder.h"
 #include "tree/RandomForest/randomforest.h"
 #include "helpers/helpers.h"
@@ -28,16 +29,22 @@ PYBIND11_MODULE(_arboria, m){
 
     py::class_<arboria::DecisionTree>(m, "DecisionTree")
         .def(py::init([](std::optional<int> max_depth,
-                                 std::optional<int> min_sample_split)
+                                 std::optional<int> min_sample_split,
+                                std::string& type)
                         {        
                         HyperParam hp;
                         if (max_depth.has_value()) hp.max_depth = max_depth;
                         hp.min_sample_split = min_sample_split;
+                        TreeType type_;
+                        if (type == "regression") type_ = Regression{};
+                        else if (type == "classification") type_ = Classification{};
+                        else throw std::invalid_argument("DecisionTree constructor : invalid TreeType");
 
-                        return std::make_unique<arboria::DecisionTree>(hp);}
+                        return std::make_unique<arboria::DecisionTree>(hp, type_);}
                     ),
             py::arg("max_depth") = std::nullopt,
-            py::arg("min_sample_split") = std::nullopt
+            py::arg("min_sample_split") = std::nullopt,
+            py::arg("type") = std::nullopt
     )
 
     .def("_fit",
@@ -81,8 +88,9 @@ PYBIND11_MODULE(_arboria, m){
                 ThresholdComputation threshold = CART{};
                 //----------Feature
                 FeatureSelection feature = AllFeatures{};
-
-                SplitParam param = ParamBuilder(TreeModel::DecisionTree, 
+                TreeType type = self.type_;
+                SplitParam param = ParamBuilder(TreeModel::DecisionTreeClassifier, 
+                    type,
                     crit, 
                     threshold , 
                     feature);
@@ -152,7 +160,8 @@ PYBIND11_MODULE(_arboria, m){
                         std::optional<float> max_samples,
                         std::optional<int> min_sample_split,
                         std::optional<int> n_jobs,
-                        std::optional<std::uint32_t> seed)
+                        std::optional<std::uint32_t> seed,
+                        std::string type)
                         {        
                         HyperParam hp;
                         hp.n_estimators = n_estimators;
@@ -167,8 +176,13 @@ PYBIND11_MODULE(_arboria, m){
                         else {
                             hp.n_jobs = 1;
                         }
+                        TreeType type_;
+                        if (type == "regression") type_ = Regression{};
+                        else if (type == "classification") type_ = Classification{};
+                        else throw std::invalid_argument("DecisionTree constructor : invalid TreeType");
 
-                        return std::make_unique<arboria::RandomForest>(hp, seed);}
+
+                        return std::make_unique<arboria::RandomForest>(hp, type_, seed);}
                     ),
             py::arg("n_estimators"), 
             py::arg("m_try"),
@@ -176,7 +190,8 @@ PYBIND11_MODULE(_arboria, m){
             py::arg("max_samples") = std::nullopt,
             py::arg("min_sample_split") = std::nullopt,
             py::arg("n_jobs") = std::nullopt,
-            py::arg("seed") = std::nullopt
+            py::arg("seed") = std::nullopt,
+            py::arg("type") = std::nullopt
     )
 
         .def("_fit", 
@@ -208,8 +223,10 @@ PYBIND11_MODULE(_arboria, m){
                 ThresholdComputation threshold = CART{};
                 //----------Feature
                 FeatureSelection feature = RandomK{m_try};
+                TreeType type = Classification{};
 
-                SplitParam param = ParamBuilder(TreeModel::RandomForest, 
+                SplitParam param = ParamBuilder(TreeModel::RandomForestClassifier, 
+                    type,
                     crit, 
                     threshold , 
                     feature);
@@ -337,6 +354,8 @@ PYBIND11_MODULE(_arboria, m){
             return py::none();
         }
         );
+
+
 
 
         m.def("_accuracy", 
