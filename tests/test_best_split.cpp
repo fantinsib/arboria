@@ -9,6 +9,7 @@
 
 #include "split_criterion/entropy.h"
 #include "split_criterion/gini.h"
+#include "split_criterion/sse.h"
 #include "split_strategy/splitter.h"
 #include "dataset/dataset.h"
 #include "split_strategy/types/ParamBuilder/ParamBuilder.h"
@@ -21,6 +22,7 @@ using arboria::split_strategy::Splitter;
 using arboria::DataSet;
 using arboria::split::weighted_gini;
 using arboria::split::weighted_entropy;
+using arboria::split::weighted_sse;
 using arboria::ParamBuilder;
 
 /*
@@ -154,6 +156,122 @@ TEST_CASE("best_split : basic usage with no split") {
 
     REQUIRE(b_split.has_split() == false);
 
+}
+
+/*
+
+----------------------------------------------------------------------------
+BEST_SPLIT BASIC USAGE (REGRESSION)
+----------------------------------------------------------------------------
+
+*/
+
+TEST_CASE("best_split : regression perfect split - SSE") {
+
+    std::vector<float> x{0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y{1,1,5,5};
+
+    DataSet data(x, y, 4, 1);
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param{Regression{}, SSE{}, CART{}, AllFeatures{}};
+
+    Splitter splitter;
+    SplitResult b_split = splitter.best_split(s, data, param);
+
+    REQUIRE(b_split.split_feature == 0);
+    REQUIRE(b_split.split_threshold == Catch::Approx(5.f));
+    REQUIRE(b_split.score == Catch::Approx(0.f));
+    REQUIRE(b_split.has_split() == true);
+}
+
+TEST_CASE("best_split : regression unperfect split - SSE") {
+
+    std::vector<float> x{0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y{1,2,3,4};
+
+    DataSet data(x, y, 4, 1);
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param{Regression{}, SSE{}, CART{}, AllFeatures{}};
+
+    Splitter splitter;
+    SplitResult b_split = splitter.best_split(s, data, param);
+
+    REQUIRE(b_split.split_feature == 0);
+    REQUIRE(b_split.split_threshold == Catch::Approx(5.f));
+    REQUIRE(b_split.score == Catch::Approx(1.f));
+    REQUIRE(b_split.has_split() == true);
+}
+
+TEST_CASE("best_split : regression no split") {
+
+    std::vector<float> x{2,
+                        2,
+                        2,
+                        2};
+    std::vector<float> y{1,2,3,4};
+
+    DataSet data(x, y, 4, 1);
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param{Regression{}, SSE{}, CART{}, AllFeatures{}};
+
+    Splitter splitter;
+    SplitResult b_split = splitter.best_split(s, data, param);
+
+    REQUIRE(b_split.has_split() == false);
+}
+
+TEST_CASE("best_split : regression with row selection") {
+
+    std::vector<float> x{0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y{1,2,3,4};
+
+    DataSet data(x, y, 4, 1);
+    std::vector<int> rows {0,2};
+    std::span s(rows);
+
+    SplitParam param{Regression{}, SSE{}, CART{}, AllFeatures{}};
+
+    Splitter splitter;
+    SplitResult b_split = splitter.best_split(s, data, param);
+
+    REQUIRE(b_split.score == Catch::Approx(0.f));
+}
+
+TEST_CASE("best_split : regression with row in random order") {
+
+    std::vector<float> x{0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y{1,2,3,4};
+
+    DataSet data(x, y, 4, 1);
+    std::vector<int> rows {3,0,2,1};
+    std::span s(rows);
+
+    SplitParam param{Regression{}, SSE{}, CART{}, AllFeatures{}};
+
+    Splitter splitter;
+    SplitResult b_split = splitter.best_split(s, data, param);
+
+    REQUIRE(b_split.split_feature == 0);
+    REQUIRE(b_split.split_threshold == Catch::Approx(5.f));
+    REQUIRE(b_split.score == Catch::Approx(1.f));
 }
 
 TEST_CASE("best_split : basic usage with row selection") {

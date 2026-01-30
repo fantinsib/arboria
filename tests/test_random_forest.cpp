@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 #include "dataset/dataset.h"
 #include "split_strategy/types/split_param.h"
@@ -36,6 +37,17 @@ DataSet make_separable_dataset() {
     };
     std::vector<float> y{0, 0, 0, 1, 1, 1};
     return DataSet(X, y, 6, 3);
+}
+
+DataSet make_regression_dataset() {
+    std::vector<float> X{
+        0,
+        0,
+        10,
+        10
+    };
+    std::vector<float> y{1, 3, 5, 7};
+    return DataSet(X, y, 4, 1);
 }
 
 }
@@ -279,4 +291,48 @@ TEST_CASE("RandomForest : reproductibility under multithreading"){
 
 }
 
+TEST_CASE("RandomForestRegressor : fit then predict basic usage") {
+    DataSet data = make_regression_dataset();
+
+    HyperParam h_param{.mtry=1, .n_estimators=1, .max_depth=1, .max_samples=1.0f};
+    RandomForest forest(h_param, Regression{}, 123);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Regression{}, SSE{}, CART{}, RandomK{1});
+
+    forest.fit(data, param);
+
+    std::vector<float> samples{
+        0,
+        10
+    };
+
+    std::vector<float> preds = forest.predict(samples);
+    REQUIRE(preds.size() == size_t(2));
+    REQUIRE(std::isfinite(preds[0]));
+    REQUIRE(std::isfinite(preds[1]));
+    REQUIRE(preds[0] >= 1.f);
+    REQUIRE(preds[0] <= 7.f);
+    REQUIRE(preds[1] >= 1.f);
+    REQUIRE(preds[1] <= 7.f);
+
+    std::vector<float> probas = forest.predict_proba(samples);
+    REQUIRE(probas == preds);
+}
+
+TEST_CASE("RandomForestRegressor : reproducibility") {
+    DataSet data = make_regression_dataset();
+
+    HyperParam h_param{.mtry=1, .n_estimators=2, .max_depth=1, .max_samples=1.0f};
+    RandomForest forest1(h_param, Regression{}, 123);
+    RandomForest forest2(h_param, Regression{}, 123);
+    SplitParam param = ParamBuilder(TreeModel::RandomForest, Regression{}, SSE{}, CART{}, RandomK{1});
+
+    forest1.fit(data, param);
+    forest2.fit(data, param);
+
+    std::vector<float> samples{0, 10};
+    std::vector<float> pred1 = forest1.predict(samples);
+    std::vector<float> pred2 = forest2.predict(samples);
+
+    REQUIRE(pred1 == pred2);
+}
 

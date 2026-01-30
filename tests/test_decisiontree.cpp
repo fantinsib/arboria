@@ -3,6 +3,7 @@
 */
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 #include <limits>
 #include <stdexcept>
 
@@ -424,4 +425,72 @@ TEST_CASE("DecisionTreeRegressor - Basic usage"){
     tree.fit(data, params);
 
 
+}
+
+TEST_CASE("DecisionTreeRegressor : predict_one() basic usage") {
+
+    std::vector<float> X {0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y {1,3,5,7};
+
+    arboria::DataSet data(X, y, 4, 1);
+    HyperParam h_param{.max_depth = 1};
+    arboria::DecisionTree tree(h_param, Regression{});
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Regression{});
+    tree.fit(data, params);
+
+    std::vector<float> sample_left {0};
+    std::vector<float> sample_right {10};
+
+    float pred_left = tree.predict_one(sample_left);
+    float pred_right = tree.predict_one(sample_right);
+
+    REQUIRE(pred_left == Catch::Approx(2.f));
+    REQUIRE(pred_right == Catch::Approx(6.f));
+}
+
+TEST_CASE("DecisionTreeRegressor : predict() basic usage") {
+
+    std::vector<float> X {0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y {1,3,5,7};
+
+    arboria::DataSet data(X, y, 4, 1);
+    HyperParam h_param{.max_depth = 1};
+    arboria::DecisionTree tree(h_param, Regression{});
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Regression{});
+    tree.fit(data, params);
+
+    std::vector<float> samples_to_predict{0,
+                                        10};
+
+    std::vector<float> preds = tree.predict(samples_to_predict);
+
+    REQUIRE(preds.size() == 2);
+    REQUIRE(preds[0] == Catch::Approx(2.f));
+    REQUIRE(preds[1] == Catch::Approx(6.f));
+}
+
+TEST_CASE("DecisionTreeRegressor : unsplittable data returns mean") {
+
+    std::vector<float> X {1,
+                        1,
+                        1,
+                        1};
+    std::vector<float> y {2,4,6,8};
+
+    arboria::DataSet data(X, y, 4, 1);
+    HyperParam h_param{.max_depth = 2};
+    arboria::DecisionTree tree(h_param, Regression{});
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Regression{});
+    tree.fit(data, params);
+
+    std::vector<float> sample {1};
+    float pred = tree.predict_one(sample);
+
+    REQUIRE(pred == Catch::Approx(5.f));
 }
