@@ -14,24 +14,11 @@ TEST_CASE("Node default state") {
     Node node;
     REQUIRE(node.is_leaf == true);
     REQUIRE(node.return_feature_index() == -1);
-    REQUIRE(node.predicted_class == -1);
+    REQUIRE(node.leaf_value == -1);
     REQUIRE(!std::isfinite(node.return_threshold()));
     REQUIRE(node.left_child == nullptr);
     REQUIRE(node.right_child == nullptr);
     REQUIRE(node.is_valid(1) == false);
-}
-
-TEST_CASE("Node leaf validity") {
-    Node node;
-    node.is_leaf = true;
-    node.predicted_class = 1;
-    REQUIRE(node.is_valid(3) == true);
-
-    node.predicted_class = 0;
-    REQUIRE(node.is_valid(3) == true);
-
-    node.predicted_class = -1;
-    REQUIRE(node.is_valid(3) == false);
 }
 
 TEST_CASE("Node split validity") {

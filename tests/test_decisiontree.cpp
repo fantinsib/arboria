@@ -3,6 +3,7 @@
 */
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 #include <limits>
 #include <stdexcept>
 
@@ -25,9 +26,9 @@ TEST_CASE("DecisionTree :  predict_one() basic usage - fit") {
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
     
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param, Classification{});
 
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
     
     tree.fit(data, params);
 
@@ -49,9 +50,16 @@ TEST_CASE("DecisionTree :  predict_one() basic usage - entropy") {
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
     
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param, Classification{});
 
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree,  Entropy{});
+    SplitParam params = arboria::ParamBuilder(
+    TreeModel::DecisionTree,
+    Classification{},        // type
+    Criterion{Entropy{}},// crit
+    std::nullopt,        // threshold
+    std::nullopt         // feature
+);
+
     
     tree.fit(data, params);
 
@@ -74,9 +82,9 @@ SECTION("Class 1 pred") {
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
     
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     tree.fit(data, params);
 
@@ -95,9 +103,9 @@ SECTION("Class 2 pred") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     tree.fit(data, params);
 
@@ -118,8 +126,8 @@ TEST_CASE("DecisionTree : instanciation without max_depth"){
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param;
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
-    arboria::DecisionTree tree(h_param);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
+    arboria::DecisionTree tree(h_param, Classification{});
     tree.fit(data, params);
 
     REQUIRE(tree.is_fitted() == true);
@@ -137,9 +145,9 @@ TEST_CASE("DecisionTree :  predict_one() :predict from duplicate row") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     tree.fit(data, params);
 
@@ -165,9 +173,9 @@ TEST_CASE("DecisionTree :  predict_one() : Duplicate samples & unique class") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param, Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     tree.fit(data, params);
     std::vector<float> sample {10,11,12};
@@ -185,9 +193,9 @@ TEST_CASE("DecisionTree :  predict_one() :unsplitable data with unbalanced class
     
     arboria::DataSet data(X, y, 5, 3); 
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     tree.fit(data, params);
     std::vector<float> sample {10,11,12};
@@ -204,9 +212,9 @@ TEST_CASE("DecisionTree :  predict_one() : unsplitable data with balanced classe
     
     arboria::DataSet data(X, y, 4, 3); 
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param, Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     tree.fit(data, params);
     std::vector<float> sample { 0,2,1};
@@ -221,9 +229,9 @@ TEST_CASE("DecisionTree : error - one sample") {
     
     arboria::DataSet data(X, y, 1, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     REQUIRE_THROWS_AS(tree.fit(data, params), std::invalid_argument);
 
@@ -239,9 +247,9 @@ TEST_CASE("DecisionTree : predict_one() error - trying to predict from non fitte
     
     arboria::DataSet data(X, y, 4, 3); 
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     std::vector<float> sample {10,11,12};
     REQUIRE_THROWS_AS(tree.predict_one(sample), std::invalid_argument);
@@ -260,9 +268,9 @@ TEST_CASE("DecisionTree - .predict() - basic usage") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     tree.fit(data, params);
     
@@ -271,14 +279,14 @@ TEST_CASE("DecisionTree - .predict() - basic usage") {
                                         10,7,9,
                                         7,12,9};
     
-    std::vector<int> preds = tree.predict(samples_to_predict);
+    std::vector<float> preds = tree.predict(samples_to_predict);
 
     REQUIRE(tree.is_fitted() == true);
     REQUIRE(tree.num_features == 3);
-    REQUIRE(preds[0]==0);
-    REQUIRE(preds[1]==0);
-    REQUIRE(preds[2]==1);
-    REQUIRE(preds[3]==1);
+    REQUIRE(preds[0]==0.f);
+    REQUIRE(preds[1]==0.f);
+    REQUIRE(preds[2]==1.f);
+    REQUIRE(preds[3]==1.f);
 }
 
 TEST_CASE("DecisionTree - .predict() - unique sample") {
@@ -293,19 +301,19 @@ TEST_CASE("DecisionTree - .predict() - unique sample") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     tree.fit(data, params);
     
     std::vector<float> samples_to_predict{10,6,10};
     
-    std::vector<int> preds = tree.predict(samples_to_predict);
+    std::vector<float> preds = tree.predict(samples_to_predict);
 
     REQUIRE(tree.is_fitted() == true);
     REQUIRE(tree.num_features == 3);
-    REQUIRE(preds[0]==1);
+    REQUIRE(preds[0]==1.f);
 
 }
 
@@ -321,9 +329,9 @@ TEST_CASE("DecisionTree - error .predict() - not fitted") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
     
     std::vector<float> samples_to_predict{1,2,0,
                                         0,-1,-2,
@@ -346,9 +354,9 @@ TEST_CASE("DecisionTree - error .predict() - dimension mismatch") {
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
 
     tree.fit(data, params);
     
@@ -372,7 +380,7 @@ TEST_CASE("DecisionTree - error .fit() - trying to call with uninitialized Split
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 4};
-    arboria::DecisionTree tree(h_param);
+    arboria::DecisionTree tree(h_param,Classification{});
     
     SplitParam params; // uninitialized split
     
@@ -391,9 +399,98 @@ TEST_CASE("DecisionTree - building with min_sample_split"){
     
     arboria::DataSet data(X, y, 5, 3);
     HyperParam h_param{.max_depth = 2, .min_sample_split = 3};
-    arboria::DecisionTree tree(h_param);
-    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree);
+    arboria::DecisionTree tree(h_param,Classification{});
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Classification{});
     tree.fit(data, params);
     REQUIRE(tree.min_sample_split == 3);
     
+}
+
+
+
+TEST_CASE("DecisionTreeRegressor - Basic usage"){
+
+
+    std::vector<float> X {0,2,1,
+                        7,9,10,
+                        1,1,2,
+                        11, 9, 8,
+                        2,0,1}; 
+
+    std::vector<float> y {2,3,4,5,6};
+    arboria::DataSet data(X, y, 5, 3);
+    HyperParam h_param{.max_depth = 2, .min_sample_split = 3};
+    arboria::DecisionTree tree(h_param,Regression{});
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Regression{});
+    tree.fit(data, params);
+
+
+}
+
+TEST_CASE("DecisionTreeRegressor : predict_one() basic usage") {
+
+    std::vector<float> X {0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y {1,3,5,7};
+
+    arboria::DataSet data(X, y, 4, 1);
+    HyperParam h_param{.max_depth = 1};
+    arboria::DecisionTree tree(h_param, Regression{});
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Regression{});
+    tree.fit(data, params);
+
+    std::vector<float> sample_left {0};
+    std::vector<float> sample_right {10};
+
+    float pred_left = tree.predict_one(sample_left);
+    float pred_right = tree.predict_one(sample_right);
+
+    REQUIRE(pred_left == Catch::Approx(2.f));
+    REQUIRE(pred_right == Catch::Approx(6.f));
+}
+
+TEST_CASE("DecisionTreeRegressor : predict() basic usage") {
+
+    std::vector<float> X {0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y {1,3,5,7};
+
+    arboria::DataSet data(X, y, 4, 1);
+    HyperParam h_param{.max_depth = 1};
+    arboria::DecisionTree tree(h_param, Regression{});
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Regression{});
+    tree.fit(data, params);
+
+    std::vector<float> samples_to_predict{0,
+                                        10};
+
+    std::vector<float> preds = tree.predict(samples_to_predict);
+
+    REQUIRE(preds.size() == 2);
+    REQUIRE(preds[0] == Catch::Approx(2.f));
+    REQUIRE(preds[1] == Catch::Approx(6.f));
+}
+
+TEST_CASE("DecisionTreeRegressor : unsplittable data returns mean") {
+
+    std::vector<float> X {1,
+                        1,
+                        1,
+                        1};
+    std::vector<float> y {2,4,6,8};
+
+    arboria::DataSet data(X, y, 4, 1);
+    HyperParam h_param{.max_depth = 2};
+    arboria::DecisionTree tree(h_param, Regression{});
+    SplitParam params = arboria::ParamBuilder(TreeModel::DecisionTree, Regression{});
+    tree.fit(data, params);
+
+    std::vector<float> sample {1};
+    float pred = tree.predict_one(sample);
+
+    REQUIRE(pred == Catch::Approx(5.f));
 }

@@ -11,12 +11,14 @@
 #include <pybind11/numpy.h>
 #include <stdexcept>
 #include <cstdint>
+#include <variant>
 
 #include "dataset/dataset.h"
+#include "split_strategy/types/split_param.h"
 #include "tree/DecisionTree/DecisionTree.h"
 #include "split_criterion/entropy.h"
 #include "split_criterion/gini.h"
-#include "split_strategy/types/split_param.h"
+#include "tree/TreeModel.h"
 #include "split_strategy/types/ParamBuilder/ParamBuilder.h"
 #include "tree/RandomForest/randomforest.h"
 #include "helpers/helpers.h"
@@ -28,16 +30,22 @@ PYBIND11_MODULE(_arboria, m){
 
     py::class_<arboria::DecisionTree>(m, "DecisionTree")
         .def(py::init([](std::optional<int> max_depth,
-                                 std::optional<int> min_sample_split)
+                                 std::optional<int> min_sample_split,
+                                std::string& type)
                         {        
                         HyperParam hp;
                         if (max_depth.has_value()) hp.max_depth = max_depth;
                         hp.min_sample_split = min_sample_split;
+                        TreeType type_;
+                        if (type == "regression") type_ = Regression{};
+                        else if (type == "classification") type_ = Classification{};
+                        else throw std::invalid_argument("DecisionTree constructor : invalid TreeType");
 
-                        return std::make_unique<arboria::DecisionTree>(hp);}
+                        return std::make_unique<arboria::DecisionTree>(hp, type_);}
                     ),
             py::arg("max_depth") = std::nullopt,
-            py::arg("min_sample_split") = std::nullopt
+            py::arg("min_sample_split") = std::nullopt,
+            py::arg("type") = std::nullopt
     )
 
     .def("_fit",
@@ -71,18 +79,29 @@ PYBIND11_MODULE(_arboria, m){
 
 
     //----------------------Param Build
-                //----------Criterion
-                Criterion crit;
-                if (criterion == "gini") crit = Gini{};
-                else if (criterion == "entropy") crit = Entropy{};
-                else throw std::runtime_error("Unknown split criterion passed to fit.");
+
 
                 //----------Threshold
                 ThresholdComputation threshold = CART{};
                 //----------Feature
                 FeatureSelection feature = AllFeatures{};
+                TreeType type = self.type_;
+                TreeModel model; 
+                //----------Criterion
+                Criterion crit;
+                if (std::holds_alternative<Classification>(type)){
+                    if (criterion == "gini") crit = Gini{};
+                    else if (criterion == "entropy") crit = Entropy{};
+                    else throw std::runtime_error("Unknown split criterion passed to fit for classification.");
+                }
+                if (std::holds_alternative<Regression>(type)){
+                    if (criterion == "sse") crit = SSE{};
+                    else throw std::runtime_error("Unknown split criterion passed to fit for regression.");
+                }
+
 
                 SplitParam param = ParamBuilder(TreeModel::DecisionTree, 
+                    type,
                     crit, 
                     threshold , 
                     feature);
@@ -91,7 +110,7 @@ PYBIND11_MODULE(_arboria, m){
                 self.fit(data, param);
             },
             
-            py::arg("X"), py::arg("y"), py::arg("criterion") = "gini",
+            py::arg("X"), py::arg("y"), py::arg("criterion"),
             R"doc(
                 Fit the decision tree.
 
@@ -122,7 +141,7 @@ PYBIND11_MODULE(_arboria, m){
             const size_t n_cols = static_cast<size_t>(xb.size);
             const float* x_ptr = static_cast<const float*>(xb.ptr);
             std::vector<float> X_vec(x_ptr, x_ptr + n_cols);
-            return std::vector<int>{self.predict_one(X_vec)};
+            return std::vector<float>{self.predict_one(X_vec)};
             }
 
             else if (ndim == 2){
@@ -152,7 +171,8 @@ PYBIND11_MODULE(_arboria, m){
                         std::optional<float> max_samples,
                         std::optional<int> min_sample_split,
                         std::optional<int> n_jobs,
-                        std::optional<std::uint32_t> seed)
+                        std::optional<std::uint32_t> seed,
+                        std::string type)
                         {        
                         HyperParam hp;
                         hp.n_estimators = n_estimators;
@@ -167,8 +187,13 @@ PYBIND11_MODULE(_arboria, m){
                         else {
                             hp.n_jobs = 1;
                         }
+                        TreeType type_;
+                        if (type == "regression") type_ = Regression{};
+                        else if (type == "classification") type_ = Classification{};
+                        else throw std::invalid_argument("RandomForest constructor : invalid TreeType");
 
-                        return std::make_unique<arboria::RandomForest>(hp, seed);}
+
+                        return std::make_unique<arboria::RandomForest>(hp, type_, seed);}
                     ),
             py::arg("n_estimators"), 
             py::arg("m_try"),
@@ -176,7 +201,8 @@ PYBIND11_MODULE(_arboria, m){
             py::arg("max_samples") = std::nullopt,
             py::arg("min_sample_split") = std::nullopt,
             py::arg("n_jobs") = std::nullopt,
-            py::arg("seed") = std::nullopt
+            py::arg("seed") = std::nullopt,
+            py::arg("type") = std::nullopt
     )
 
         .def("_fit", 
@@ -198,18 +224,28 @@ PYBIND11_MODULE(_arboria, m){
 //----------------------Param Build
 
 
-                //----------Criterion
-                Criterion crit;
-                if (criterion == "gini") crit = Gini{};
-                else if (criterion == "entropy") crit = Entropy{};
-                else throw std::runtime_error("Unknown split criterion passed to fit.");
+
 
                 //----------Threshold
                 ThresholdComputation threshold = CART{};
                 //----------Feature
                 FeatureSelection feature = RandomK{m_try};
+                TreeType type = self.type_;
+                
+                //----------Criterion
+                Criterion crit;
+                if (std::holds_alternative<Classification>(type)){
+                    if (criterion == "gini") crit = Gini{};
+                    else if (criterion == "entropy") crit = Entropy{};
+                    else throw std::runtime_error("Unknown split criterion passed to fit for classification.");
+                }
+                if (std::holds_alternative<Regression>(type)){
+                    if (criterion == "sse") crit = SSE{};
+                    else throw std::runtime_error("Unknown split criterion passed to fit for regression.");
+                }
 
                 SplitParam param = ParamBuilder(TreeModel::RandomForest, 
+                    type,
                     crit, 
                     threshold , 
                     feature);
@@ -337,6 +373,8 @@ PYBIND11_MODULE(_arboria, m){
             return py::none();
         }
         );
+
+
 
 
         m.def("_accuracy", 

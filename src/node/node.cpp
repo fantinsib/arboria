@@ -8,7 +8,7 @@ namespace arboria {
 Node::Node():
     feature_index(-1),
     threshold(std::numeric_limits<float>::quiet_NaN()),
-    predicted_class(-1)
+    leaf_value(-1)
 {}
 
 int Node::return_feature_index() const{
@@ -20,9 +20,6 @@ float Node::return_threshold() const{
 }
 
 bool Node::is_valid(int n_features) const{
-    if (is_leaf) {
-        return (predicted_class == 0 || predicted_class == 1); //check if is leaf
-    }
 
     if (feature_index < 0 || feature_index >= n_features) //check if registered feature on which 
         return false;                                     // on which the split takes place is indeed 
