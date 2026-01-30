@@ -27,7 +27,8 @@ namespace arboria{
  *       its resolution is expected to be handled later during fit, once the number
  *       of features is known.
  *
- * @param model The model kind (DecisionTree or RandomForest) used to enforce invariants.
+ * @param model The model family (DecisionTree or RandomForest) used to enforce invariants
+ * @param type The type of problem the tree is solving (regression or classification)
  * @param crit Optional impurity criterion. If not provided, defaults to @ref Gini.
  * @param threshold Optional threshold computation strategy. If not provided, defaults to @ref CART.
  * @param feature Optional feature-selection strategy. If not provided, defaults to
