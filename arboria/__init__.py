@@ -1,3 +1,3 @@
-from ._api import DecisionTree, RandomForest, accuracy
+from ._api import DecisionTreeRegressor, DecisionTreeClassifier, RandomForestRegressor, RandomForestClassifier, accuracy
 
-__all__ = ["DecisionTree", "RandomForest", "accuracy"]
+__all__ = ["DecisionTreeRegressor", "DecisionTreeClassifier", "RandomForestRegressor", "RandomForestClassifier", "accuracy"]

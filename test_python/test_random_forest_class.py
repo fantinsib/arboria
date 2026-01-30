@@ -1,10 +1,10 @@
-from arboria import RandomForest, accuracy
+from arboria import RandomForestClassifier, accuracy
 import pytest
 import numpy as np
 
 def test_random_forest_init():
-    rf = RandomForest(max_depth=5, max_features=3, n_estimators=10, seed=1)
-    assert isinstance(rf, RandomForest)
+    rf = RandomForestClassifier(max_depth=5, max_features=3, n_estimators=10, seed=1)
+    assert isinstance(rf, RandomForestClassifier)
 
 @pytest.mark.parametrize(
         "kwargs",
@@ -18,8 +18,8 @@ def test_random_forest_init():
         ]
 )
 def test_random_forest_default_params(kwargs):
-    rf = RandomForest(**kwargs)
-    assert isinstance(rf, RandomForest)
+    rf = RandomForestClassifier(**kwargs)
+    assert isinstance(rf, RandomForestClassifier)
     X = np.array([[0,0,1],[1,1,2], [1,2,1],[4,5,5], [7,8,9], [10,11, 12]])
     y = np.array([0,0,0,1,1,1])
     
@@ -39,7 +39,7 @@ def test_random_forest_default_params(kwargs):
 def test_random_forest_bad_params(kwargs):
 
     with pytest.raises(ValueError):
-        RandomForest(**kwargs)
+        RandomForestClassifier(**kwargs)
 
 def test_random_forest_reproductible():
     from sklearn.datasets import load_breast_cancer
@@ -53,8 +53,8 @@ def test_random_forest_reproductible():
         [8, 12, 20]])
     y = np.array([0,1,0,1,0,1])
 
-    rf1 = RandomForest(n_estimators=2, min_sample_split=2, seed = 10)
-    rf2 = RandomForest(n_estimators=2, min_sample_split=2, seed = 10)
+    rf1 = RandomForestClassifier(n_estimators=2, min_sample_split=2, seed = 10)
+    rf2 = RandomForestClassifier(n_estimators=2, min_sample_split=2, seed = 10)
 
     rf1.fit(X, y, criterion="entropy")
     rf2.fit(X, y, criterion="entropy")
@@ -74,8 +74,8 @@ def test_random_forest_max_samples():
     y = bc.target.astype(np.int32) 
     x_train, x_test, y_train, y_test = train_test_split(X,y, random_state=10)
 
-    rf1 = RandomForest(max_samples=1.2, max_depth=6, seed = 10)
-    rf2 = RandomForest(max_samples = 0.1, max_depth =6, seed = 10)
+    rf1 = RandomForestClassifier(max_samples=1.2, max_depth=6, seed = 10)
+    rf2 = RandomForestClassifier(max_samples = 0.1, max_depth =6, seed = 10)
 
     rf1.fit(x_train, y_train, criterion="entropy")
     rf2.fit(x_train, y_train, criterion="entropy")
@@ -97,8 +97,8 @@ def test_random_forest_min_sample_split():
     y = bc.target.astype(np.int32) 
     x_train, x_test, y_train, y_test = train_test_split(X,y, random_state=10)
 
-    rf1 = RandomForest(min_sample_split=10, n_estimators=1, max_depth=6, seed = 10)
-    rf2 = RandomForest(min_sample_split=500, n_estimators=1, max_depth =6, seed = 10)
+    rf1 = RandomForestClassifier(min_sample_split=10, n_estimators=1, max_depth=6, seed = 10)
+    rf2 = RandomForestClassifier(min_sample_split=500, n_estimators=1, max_depth =6, seed = 10)
 
     rf1.fit(x_train, y_train, criterion="entropy")
     rf2.fit(x_train, y_train, criterion="entropy")
@@ -117,8 +117,8 @@ def test_random_forest_parallelism():
     y = bc.target.astype(np.int32) 
     x_train, x_test, y_train, y_test = train_test_split(X,y, random_state=10)
 
-    rf1 = RandomForest(min_sample_split=10, n_estimators=1, max_depth=6, seed = 10)
-    rf2 = RandomForest(min_sample_split=500, n_estimators=1, max_depth =6, seed = 10)
+    rf1 = RandomForestClassifier(min_sample_split=10, n_estimators=1, max_depth=6, seed = 10)
+    rf2 = RandomForestClassifier(min_sample_split=500, n_estimators=1, max_depth =6, seed = 10)
 
     rf1.fit(x_train, y_train, criterion="entropy")
     rf2.fit(x_train, y_train, criterion="entropy")

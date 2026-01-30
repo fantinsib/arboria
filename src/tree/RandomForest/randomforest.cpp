@@ -13,6 +13,7 @@
 #include "split_strategy/types/split_param.h"
 #include "split_strategy/types/split_hyper.h"
 #include "tree/DecisionTree/DecisionTree.h"
+#include "tree/TreeModel.h"
 
 #include <atomic>
 #include <iostream>
@@ -27,6 +28,7 @@
 #include <random>
 #include <stdexcept>
 #include <thread>
+#include <variant>
 
 using arboria::sampling::bootstrap;
 using arboria::ForestTree;
@@ -34,7 +36,7 @@ using arboria::helpers::derive_seed;
 
 namespace arboria{
 
-RandomForest::RandomForest(HyperParam hyperParam, std::optional<std::uint32_t> user_seed)
+RandomForest::RandomForest(HyperParam hyperParam, TreeType type, std::optional<std::uint32_t> user_seed)
 {
 
     if (hyperParam.n_estimators.has_value()) {
@@ -94,6 +96,12 @@ RandomForest::RandomForest(HyperParam hyperParam, std::optional<std::uint32_t> u
         seed_ = static_cast<std::uint32_t>(rd());
     }
     else{seed_ = user_seed.value();}
+
+    if (std::holds_alternative<Classification>(type) || std::holds_alternative<Regression>(type)){
+        type_ = type;
+    }
+    else throw std::invalid_argument("DecisionTree constructor : invalid type");
+
 }
 
 void RandomForest::fit(const DataSet &data, const SplitParam& params){
@@ -195,14 +203,21 @@ std::vector<float> RandomForest::predict_proba(std::span<const float> samples) c
 }
 
 
-std::vector<int> RandomForest::predict(std::span<const float> sample) const {
+std::vector<float> RandomForest::predict(std::span<const float> sample) const {
 
     std::vector<float> prob_pred = predict_proba(sample);
-    std::vector<int> class_pred(prob_pred.size());
+    
 
-    std::transform(prob_pred.begin(), prob_pred.end(), class_pred.begin(),
-                    [](float x){return (x >= 0.5) ? 1 : 0;});
-    return class_pred;
+    if (std::holds_alternative<Classification>(type_)){
+        std::vector<float> class_pred(prob_pred.size());
+        std::transform(prob_pred.begin(), prob_pred.end(), class_pred.begin(),
+                        [](float x){return (x >= 0.5) ? 1 : 0;});
+                        return class_pred;
+    }
+    if (std::holds_alternative<Regression>(type_)){
+        return prob_pred;
+    }
+        
 }
 
 float RandomForest::out_of_bag(const DataSet &data) const {
@@ -229,7 +244,7 @@ float RandomForest::out_of_bag(const DataSet &data) const {
         for (const ForestTree& t : trees){
 
             if (!t.in_bag[row]){
-                int pred = t.tree->predict_one(s);
+                float pred = t.tree->predict_one(s);
                 sum_pred = sum_pred + pred;
                 num_pred++;   
             }
@@ -272,7 +287,8 @@ void RandomForest::fit_(size_t i, const DataSet& data, const SplitParam &param, 
         // add to the RF list 
         ForestTree forest_tree;
         HyperParam h_param{.max_depth = max_depth, .min_sample_split = min_sample_split};
-        forest_tree.tree = std::make_unique<DecisionTree>(h_param);
+        
+        forest_tree.tree = std::make_unique<DecisionTree>(h_param, param.type);
         forest_tree.in_bag = std::move(seen_idx);
 
         trees[i]=(std::move(forest_tree));

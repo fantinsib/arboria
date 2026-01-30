@@ -10,7 +10,8 @@ This repository contains C++ implementations of tree-based models with Python bi
 
 This version currently supports :
 
-#### `DecisionTree` (binary classification)
+### `DecisionTree` 
+`DecisionTreeClassifier` / `DecisionTreeRegressor`
 - `.fit`: trains a decision tree using the CART algorithm
 - `.predict`: predicts the labels for input samples
 - Hyperparameters currently include :
@@ -18,9 +19,10 @@ This version currently supports :
     - `min_sample_split` : minimum number of sample required in a node to allow a split
 
 
-#### `RandomForest` (binary classification)
+### `RandomForest`
+ `RandomForestClassifier` / `RandomForestRegressor`
 - `.fit`: fits a RandomForest with `n_estimators` trees. Uses RandomK feature selection (`max_features` features). Supports reproducible randomness via `seed`.
-- `.predict` / `.predict_proba`: predicts class labels or returns the average class probabilities across all trees
+- `.predict` / `.predict_proba` (classification only): predicts class labels or returns the average class probabilities across all trees
 - `.out_of_bag`: returns accuracy on training samples not bootstrapped during training
 - Hyperparameters currently include :
     - `n_estimators` : number of trees in the forest
@@ -56,15 +58,15 @@ pip install .
 A demo notebook is available : **[arboria_demo.ipynb](https://github.com/fantinsib/arboria/blob/main/docs/arboria_demo.ipynb)**
 
 ````python
-from arboria import DecisionTree, RandomForest, accuracy
+from arboria import DecisionTreeRegressor, RandomForestClassifier, accuracy
 ````
 
 ### Initializing the models
 
 ````python
-tree = DecisionTree(max_depth=5, min_sample_split=10)
+tree = DecisionTreeRegressor(max_depth=5, min_sample_split=10)
 
-rf = RandomForest(
+rf = RandomForestClassifier(
     n_estimators= 80,
     max_depth= 10, 
     max_features=6,
@@ -78,7 +80,7 @@ rf = RandomForest(
 ### Fit
 
 ````python
-tree.fit(x_train, y_train, criterion="gini")
+tree.fit(x_train, y_train)
 rf.fit(x_train, y_train, criterion = "entropy")
 ````
 
@@ -110,10 +112,10 @@ Additional [notes](docs/notes/) and [diagrams](docs/diagrams/) can be found in t
 
 The chosen benchmark is the `sklearn` algorithm for RandomForest. Test details ([history](test_python/perf/perf_logs) and [the testing script](test_python/perf/arboria_perf.py) can be found in test_python/perf folder).
 
-**Note** : the following test were ran with parameters :
+**Note** : the following test were run with parameters :
 
 ```python
-n_estimators = 100	
+n_estimators = 50	
 max_depth = 8
 max_features = "sqrt"
 max_samples = 0.9
@@ -127,21 +129,23 @@ for sklearn and arboria with 1 warmup and 10 repeats. All datasets are synthetic
 ***
 **Training**
 
-On intermediate/large datasets (from 25k samples to 250k), `scikit-learn` still outperforms `arboria` for training speed by around **15-25%**. On the largest setting (250k samples), arboria for instance reaches around **83%** of scikit-learn’s training speed.
+On intermediate/large datasets (from 25k samples to 250k), `scikit-learn` still outperforms `arboria` for training speed by around **15-25%**. On the largest setting (250k samples), arboria for instance reaches around **84%** of scikit-learn’s training speed for classification and around **77%** of regression speed. The difference seems however to stay relatively stable passed a certain threshold.
 
-On intermediate/small datasets (roughly 2.5k to 10k samples), arboria starts benefitting from the high fixed overhead performance costs of sklearn. It achieves comparable or slightly better performance for  training, from around *15% to 80%* faster speed depending on dataset size.
+On intermediate/small datasets (roughly 2.5k to 10k samples), arboria starts benefitting from the high fixed overhead performance costs of sklearn. It achieves comparable or slightly better performance for  training both in regression and classification.
 
-Finally, on small datasets, arboria outperforms sklearn, reaching up to 7–8× faster training. This difference is again largely the result of the overhead of sklearn.
+Finally, on small datasets, arboria outperforms sklearn, reaching up to 6× faster training. This difference is again largely the result of the overhead of sklearn.
 
-![Training Speed](docs/diagrams/training_speed_graph.png)
+![Training Speed](test_python/perf/test_python/perf/plots/classification_fit.png)
+![Training Speed](test_python/perf/test_python/perf/plots/regression_fit.png)
 
 ***
 **Inference**
 
-Arboria has a slight edge for inference across all tested dataset. Although the gap narrows as the number of samples increases, arboria consistently achieves faster prediction and prediction-probability times, with speedups ranging from ~1.1× to ~1.7× on datasets larger than 50k samples. This is again realistically due to the overheads of Sklearn.
+Arboria has a slight edge for inference across all tested dataset. Although the gap narrows as the number of samples increases, arboria consistently achieves faster prediction and prediction-probability times, with speedups ranging from ~1.2× to ~2.3× on datasets larger than 50k samples. This is again realistically due to the overheads of Sklearn.
 
-***
-![Training Speed](docs/diagrams/inference_speed_graph.png)
+---
+![Training Speed](test_python/perf/test_python/perf/plots/classification_infer.png)
+![Training Speed](test_python/perf/test_python/perf/plots/regression_infer.png)
 
 ***
 
@@ -151,19 +155,58 @@ Arboria has a slight edge for inference across all tested dataset. Although the 
 - Train/test decomposition is 70%/30%
 - Percentages are calculated as the time taken by sklearn divided by the time taken by arboria in ms.
 
+*Classification* :
+
 Number of samples|	Fit|	Predict	|Predict Proba|
 |-----------|-------|-------|-------|
-| 500	    | 725%	| 5255%	| 5567% |
-| 1000	    | 360%	| 3268%	| 3406% |
-| 2500	    | 179%	| 1345%	| 1421% |
-| 5000	    | 114%	| 633%	| 654%  |
-| 10 000	| 115%	| 411%	| 413%  |
-| 25 000	| 88%	| 396%	| 397%  |
-| 50 000	| 74%	| 173%	| 177%  |
-| 100 000	| 92%	| 144%	| 146%  |
-| 150 000	| 80%	| 115%	| 112%  |
-| 250 000	| 80%	| 118%	| 109%  |
+| 500	    | 6.13x	| 84.32x| 86.79x |
+| 1000	    | 3.90x	| 58.70x| 60.96x |
+| 2500	    | 1.70x	| 33.83x| 33.31x |
+| 5000	    | 1.34x	| 20.71x| 21.44x|
+| 10 000	| 1.05x	| 9.35x	| 9.21x |
+| 25 000	| 0.97x	| 4.31x	| 4.34x |
+| 50 000	| 0.82x	| 2.29x	| 2.34x |
+| 100 000	| 0.89x	| 2.37x	| 2.32x |
+| 150 000	| 0.82x	| 1.58x	| 1.52x |
+| 200 000   | 0.76x | 1.74x | 1.64x |
+| 250 000	| 0.84x	| 1.36x	| 1.26x |
 
+---
+
+*Regression* :
+
+Number of samples|Fit|	Predict	
+|-----------|-------|-------|
+| 500	    | 6.58x	| 82.69x|
+| 1000	    | 2.89x	| 56.86x|
+| 2500	    | 1.89x	| 33.87x|
+| 5000      | 1.23x | 19.66x|
+| 10 000	| 1.00x	| 9.25x	| 
+| 25 000	| 0.93x	| 4.42x	| 
+| 50 000	| 0.86x	| 2.08x	| 
+| 100 000	| 0.79x	| 2.22x	| 
+| 150 000   | 0.78x | 2.05x |
+| 200 000   | 0.79x | 1.64x | 
+| 250 000	| 0.77x | 1.46x	| 
+
+
+---
+
+More detailed results, including about scoring, are available in the [results csv](test_python/perf/bench_results_4_tests_20260130_185031.csv). For classification, accuracy is very close for arboria and sklearn predictions. 
+
+In order to validate the regression logic, RandomForest from arboria and sklearn were trained with the same hyperparameters on the same synthetic dataset (sklearn `make_regression`). The following plots illustrate the results : 
+
+![Regression results comparison](docs/diagrams/pred_vs_target.png)
+
+ Plotting the target values against the predictions for Arboria and scikit-learn shows visually that both models achieve a similar level of precision, which is confirmed by comparable RMSE and MAE values.
+
+![Regression results comparison](docs/diagrams/res_vs_target.png)
+
+Plotting the target values against the residuals for both models again highlights the absence of any strong difference in predictive power between Arboria and scikit-learn. It is nevertheless interesting to note the presence of larger positive residuals for low values of $y$ and larger negative residuals for high values of $y$. This illustrates a tendency of both models to overestimate extreme low values and underestimate extreme high values.
+
+![Regression results comparison](docs/diagrams/pred_diff.png)
+
+This final graph plots the raw difference between Arboria and scikit-learn predictions for each sample. This shows no clear structure or systematic pattern , which suggests that the observed differences are mainly due to noise rather than to a structural bias between the two implementations. 
 
 ## Roadmap 
  

@@ -9,6 +9,7 @@
 
 #include "split_criterion/entropy.h"
 #include "split_criterion/gini.h"
+#include "split_criterion/sse.h"
 #include "split_strategy/splitter.h"
 #include "dataset/dataset.h"
 #include "split_strategy/types/ParamBuilder/ParamBuilder.h"
@@ -21,6 +22,7 @@ using arboria::split_strategy::Splitter;
 using arboria::DataSet;
 using arboria::split::weighted_gini;
 using arboria::split::weighted_entropy;
+using arboria::split::weighted_sse;
 using arboria::ParamBuilder;
 
 /*
@@ -43,7 +45,7 @@ TEST_CASE("best_split : basic usage with perfect split - Gini") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, AllFeatures{}};
+    SplitParam param{Classification{}, Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -71,7 +73,7 @@ TEST_CASE("best_split : basic usage with unperfect split - Gini") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, AllFeatures{}};
+    SplitParam param{Classification{}, Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -94,7 +96,7 @@ TEST_CASE("best_split : basic usage with perfect split - Entropy") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Entropy{}, CART{}, AllFeatures{}};
+    SplitParam param{Classification{}, Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -123,7 +125,7 @@ TEST_CASE("best_split : basic usage with unperfect split - Entropy") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Entropy{}, CART{}, AllFeatures{}};
+    SplitParam param{Classification{}, Entropy{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -147,13 +149,129 @@ TEST_CASE("best_split : basic usage with no split") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, AllFeatures{}};
+    SplitParam param{Classification{}, Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
 
     REQUIRE(b_split.has_split() == false);
 
+}
+
+/*
+
+----------------------------------------------------------------------------
+BEST_SPLIT BASIC USAGE (REGRESSION)
+----------------------------------------------------------------------------
+
+*/
+
+TEST_CASE("best_split : regression perfect split - SSE") {
+
+    std::vector<float> x{0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y{1,1,5,5};
+
+    DataSet data(x, y, 4, 1);
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param{Regression{}, SSE{}, CART{}, AllFeatures{}};
+
+    Splitter splitter;
+    SplitResult b_split = splitter.best_split(s, data, param);
+
+    REQUIRE(b_split.split_feature == 0);
+    REQUIRE(b_split.split_threshold == Catch::Approx(5.f));
+    REQUIRE(b_split.score == Catch::Approx(0.f));
+    REQUIRE(b_split.has_split() == true);
+}
+
+TEST_CASE("best_split : regression unperfect split - SSE") {
+
+    std::vector<float> x{0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y{1,2,3,4};
+
+    DataSet data(x, y, 4, 1);
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param{Regression{}, SSE{}, CART{}, AllFeatures{}};
+
+    Splitter splitter;
+    SplitResult b_split = splitter.best_split(s, data, param);
+
+    REQUIRE(b_split.split_feature == 0);
+    REQUIRE(b_split.split_threshold == Catch::Approx(5.f));
+    REQUIRE(b_split.score == Catch::Approx(1.f));
+    REQUIRE(b_split.has_split() == true);
+}
+
+TEST_CASE("best_split : regression no split") {
+
+    std::vector<float> x{2,
+                        2,
+                        2,
+                        2};
+    std::vector<float> y{1,2,3,4};
+
+    DataSet data(x, y, 4, 1);
+    std::vector<int> rows {0,1,2,3};
+    std::span s(rows);
+
+    SplitParam param{Regression{}, SSE{}, CART{}, AllFeatures{}};
+
+    Splitter splitter;
+    SplitResult b_split = splitter.best_split(s, data, param);
+
+    REQUIRE(b_split.has_split() == false);
+}
+
+TEST_CASE("best_split : regression with row selection") {
+
+    std::vector<float> x{0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y{1,2,3,4};
+
+    DataSet data(x, y, 4, 1);
+    std::vector<int> rows {0,2};
+    std::span s(rows);
+
+    SplitParam param{Regression{}, SSE{}, CART{}, AllFeatures{}};
+
+    Splitter splitter;
+    SplitResult b_split = splitter.best_split(s, data, param);
+
+    REQUIRE(b_split.score == Catch::Approx(0.f));
+}
+
+TEST_CASE("best_split : regression with row in random order") {
+
+    std::vector<float> x{0,
+                        0,
+                        10,
+                        10};
+    std::vector<float> y{1,2,3,4};
+
+    DataSet data(x, y, 4, 1);
+    std::vector<int> rows {3,0,2,1};
+    std::span s(rows);
+
+    SplitParam param{Regression{}, SSE{}, CART{}, AllFeatures{}};
+
+    Splitter splitter;
+    SplitResult b_split = splitter.best_split(s, data, param);
+
+    REQUIRE(b_split.split_feature == 0);
+    REQUIRE(b_split.split_threshold == Catch::Approx(5.f));
+    REQUIRE(b_split.score == Catch::Approx(1.f));
 }
 
 TEST_CASE("best_split : basic usage with row selection") {
@@ -168,7 +286,7 @@ TEST_CASE("best_split : basic usage with row selection") {
     std::vector<int> rows {0,2};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, AllFeatures{}};
+    SplitParam param{Classification{}, Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -190,7 +308,7 @@ TEST_CASE("best_split : basic usage with row in random order") {
     std::vector<int> rows {3,0,2,1};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, AllFeatures{}};
+    SplitParam param{Classification{}, Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -213,8 +331,8 @@ TEST_CASE("best_split : basic usage with duplicate rows") {
     std::vector<int> rows {0,0,0,2};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, AllFeatures{}};
-    
+    SplitParam param{Classification{}, Gini{}, CART{}, AllFeatures{}};
+
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
 
@@ -234,7 +352,7 @@ TEST_CASE("best_split : no split when 1 sample") {
     std::vector<int> rows {0};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, AllFeatures{}};
+    SplitParam param{Classification{}, Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     SplitResult b_split = splitter.best_split(s, data, param);
@@ -260,7 +378,7 @@ TEST_CASE("best_split : errors - empty data") {
     std::vector<int> rows {0,0,0,2};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, AllFeatures{}};
+    SplitParam param{Classification{}, Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param), std::invalid_argument);
@@ -277,7 +395,7 @@ TEST_CASE("best_split : errors - empty idx") {
     std::vector<int> rows {};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, AllFeatures{}};
+    SplitParam param{Classification{}, Gini{}, CART{}, AllFeatures{}};
     
     Splitter splitter;
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param), std::invalid_argument);
@@ -306,7 +424,7 @@ TEST_CASE("best_split + randomk : basic usage with span overload") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, RandomK{2}};
+    SplitParam param{Classification{}, Gini{}, CART{}, RandomK{2}};
 
     Splitter splitter;
 
@@ -330,7 +448,7 @@ TEST_CASE("best_split + randomk : reproductibility") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, RandomK{2}};
+    SplitParam param{Classification{}, Gini{}, CART{}, RandomK{2}};
 
     Splitter splitter;
 
@@ -357,7 +475,7 @@ TEST_CASE("best_split + randomk : mtry == num_features") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, RandomK{3}};
+    SplitParam param{Classification{}, Gini{}, CART{}, RandomK{3}};
 
 
     Splitter splitter;
@@ -382,7 +500,7 @@ TEST_CASE("best_split + randomk : errors - called w/o context") {
     std::vector<int> rows {0,1,2,3};
     std::span s(rows);
 
-    SplitParam param{Gini{}, CART{}, RandomK{}};
+    SplitParam param{Classification{}, Gini{}, CART{}, RandomK{}};
     //pick randomK but omit SplitContext with RNG
     Splitter splitter;
 
@@ -407,17 +525,17 @@ TEST_CASE("best_split + randomk : errors - mtry illegal") {
     Splitter splitter;
 
     SECTION("mtry == 0"){
-    SplitParam param{Gini{}, CART{}, RandomK{0}};
+    SplitParam param{Classification{}, Gini{}, CART{}, RandomK{0}};
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param, ctx), std::logic_error);
     }
 
     SECTION("mtry < 0"){
-    SplitParam param{Gini{}, CART{}, RandomK{-2}};
+    SplitParam param{Classification{}, Gini{}, CART{}, RandomK{-2}};
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param, ctx), std::logic_error);
     }
 
     SECTION("mtry > num_features"){
-    SplitParam param{Gini{}, CART{}, RandomK{4}};
+    SplitParam param{Classification{}, Gini{}, CART{}, RandomK{4}};
     REQUIRE_THROWS_AS(splitter.best_split(s, data, param, ctx), std::logic_error);
     }
 

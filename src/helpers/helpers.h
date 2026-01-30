@@ -98,6 +98,22 @@ inline std::pair<int, int> count_classes(std::span<const int> idx, const std::ve
 
 }
 
+inline float calculate_mean(std::span<const int> idx, const std::vector<float>& targets){
+
+    float t_sum = 0;
+    size_t n_count = 0;
+
+    for (auto i : idx){
+
+        t_sum += targets[i];
+        n_count++;
+    }
+    if (n_count > 0) return t_sum/n_count;
+    else throw std::invalid_argument("arboria::helpers::calculate_mean : passed idx is empty");
+
+
+}
+
 inline float accuracy(const std::span<const int> a, const std::span<const int> b){
 
     const size_t n = a.size();

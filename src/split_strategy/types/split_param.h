@@ -4,9 +4,17 @@
 #include <variant>
 #include <cstddef>
 
-//--------------------- FeatureSelection
+//--------------------- Tree Type
 
 struct Undefined{};
+
+struct Regression{};
+struct Classification{};
+
+using TreeType = std::variant<Undefined, Regression, Classification>;
+
+
+//--------------------- FeatureSelection
 
 //Searches all features during split
 struct AllFeatures {};
@@ -33,8 +41,9 @@ using ThresholdComputation = std::variant<Undefined, CART, Random, Quantile>;
 struct Gini {};
 //Uses Entropy as impurity parameter
 struct Entropy{};
+struct SSE{};
 
-using Criterion = std::variant<Undefined, Gini, Entropy>;
+using Criterion = std::variant<Undefined, Gini, Entropy, SSE>;
 
 
 
@@ -43,11 +52,13 @@ using Criterion = std::variant<Undefined, Gini, Entropy>;
  *
  * SplitParams defines all the algorithmic choices used when searching
  * for the best split in a node:
+ *  - the type of problem (classification or regression)
  *  - which impurity criterion is used (Gini, Entropy, ...)
  *  - how threshold candidates are generated
  *  - how features are selected
  *
- * @param criterion A criterion to use in {Gini, Entropy}
+ * @param type Tree family type {Regression, Classification}
+ * @param criterion A criterion to use in {Gini, Entropy, SSE}
  * @param t_comp The threshold computation method {CART, Random, Quantile}
  * @param f_selection The feature selection method {AllFeatures, RandomK}
  * @param hparam The hyperparameters that need to be passed to the loop
@@ -60,7 +71,9 @@ using Criterion = std::variant<Undefined, Gini, Entropy>;
  */
 struct SplitParam {
 
+    TreeType type; 
     Criterion criterion;
     ThresholdComputation t_comp;
     FeatureSelection f_selection;
+    
 };

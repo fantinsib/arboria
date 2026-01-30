@@ -10,6 +10,7 @@
 #include "helpers/helpers.h"
 #include "split_strategy/types/split_context.h"
 #include "split_strategy/types/split_hyper.h"
+#include "split_strategy/types/split_param.h"
 #include "tree/TreeModel.h"
 
 namespace arboria::test { struct DecisionTreeAccess; }  
@@ -31,7 +32,7 @@ class DecisionTree
         * @param max_depth Maximum allowed depth of the tree.
         *        
         */
-        DecisionTree(HyperParam h_param);
+        DecisionTree(HyperParam h_param, TreeType type);
         
         /**
         * @brief Fit the decision tree on a dataset.
@@ -75,7 +76,7 @@ class DecisionTree
          * and training feature differ 
          * @return the predicted class 
          */
-        int predict_one(const std::span<const float> sample) const;
+        float predict_one(const std::span<const float> sample) const;
         
         /**
          * @brief Predict the class of a set of samples
@@ -89,7 +90,7 @@ class DecisionTree
          * if samples dimensions are incompatible with training dataset dimensions.
          * @return a vector of int of the predicted class
          */
-        std::vector<int> predict(const std::span<const float> samples) const;
+        std::vector<float> predict(const std::span<const float> samples) const;
      
         //Maximum depth allowed for the construction of the DecisionTree
         std::optional<int>max_depth;
@@ -98,7 +99,7 @@ class DecisionTree
         int num_features;
         //Getter for fitted
         inline bool is_fitted() const {return fitted;}
-        
+        TreeType type_; 
 
     private:
         /**
@@ -145,11 +146,12 @@ class DecisionTree
          * @param node the current node 
          * @return the predicted class
          */
-        int predict_one_(const std::span<const float> sample, const Node& node) const;
+        float predict_one_(const std::span<const float> sample, const Node& node) const;
         
         bool fitted = false;
         Node root_node;
         Splitter splitter;
+
         friend struct arboria::test::DecisionTreeAccess;
         
 };
