@@ -23,7 +23,7 @@ from typing import Dict, List, Tuple
 import matplotlib.pyplot as plt
 
 
-def load_rows(csv_path: Path = "bench_results_4_tests.csv") -> List[dict]:
+def load_rows(csv_path: Path) -> List[dict]:
     with csv_path.open(newline="") as f:
         return list(csv.DictReader(f))
 

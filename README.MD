@@ -143,7 +143,7 @@ Finally, on small datasets, arboria outperforms sklearn, reaching up to 6× fast
 
 Arboria has a slight edge for inference across all tested dataset. Although the gap narrows as the number of samples increases, arboria consistently achieves faster prediction and prediction-probability times, with speedups ranging from ~1.2× to ~2.3× on datasets larger than 50k samples. This is again realistically due to the overheads of Sklearn.
 
----
+***
 ![Training Speed](test_python/perf/test_python/perf/plots/classification_infer.png)
 ![Training Speed](test_python/perf/test_python/perf/plots/regression_infer.png)
 
@@ -171,7 +171,7 @@ Number of samples|	Fit|	Predict	|Predict Proba|
 | 200 000   | 0.76x | 1.74x | 1.64x |
 | 250 000	| 0.84x	| 1.36x	| 1.26x |
 
----
+***
 
 *Regression* :
 
@@ -190,7 +190,7 @@ Number of samples|Fit|	Predict
 | 250 000	| 0.77x | 1.46x	| 
 
 
----
+***
 
 More detailed results, including about scoring, are available in the [results csv](test_python/perf/bench_results_4_tests_20260130_185031.csv). For classification, accuracy is very close for arboria and sklearn predictions. 
 
