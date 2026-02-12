@@ -1,6 +1,4 @@
 
-// See notes_split_logic.md for details about the implementation 
-
 #pragma once
 #include <stdexcept>
 #include <vector>

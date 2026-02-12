@@ -30,7 +30,9 @@ using FeatureSelection = std::variant<Undefined, AllFeatures, RandomK>;
 
 //Computes the threshold according to regular CART algorithm
 struct CART{};
-struct Random{};
+struct Random{
+    std::optional<int> n_random_split;
+};
 struct Quantile{};
 
 using ThresholdComputation = std::variant<Undefined, CART, Random, Quantile>;

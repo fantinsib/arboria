@@ -11,6 +11,7 @@
 #include "split_strategy/types/split_context.h"
 #include "split_strategy/types/split_param.h"
 #include "split_strategy/types/split_stats.h"
+#include "split_strategy/threshold/random_threshold.h"
 
 #include <numeric>
 #include <random>
@@ -21,6 +22,7 @@
 #include <span>
 
 using arboria::feature_selection::randomK;
+using arboria::split_strategy::random_threshold;
 
 namespace arboria {
 namespace split_strategy{
@@ -123,8 +125,13 @@ SplitResult Splitter::best_split_classification(std::span<const int> idx, const 
             }
 
             else if constexpr ((std::is_same_v<T, Random>)){
-                throw std::logic_error("Not yet implemented");
-            // to implement
+                auto* random_f = std::get_if<Random>(&params.t_comp);
+                int n_random_split = *random_f->n_random_split;
+                thresholds = random_threshold(idx, col,data, n_random_split, context.rng);
+                std::sort(thresholds.begin(), thresholds.end(), 
+                [&](int)
+            );
+    
             }
             
             else if constexpr (std::is_same_v<T, Quantile>) {
