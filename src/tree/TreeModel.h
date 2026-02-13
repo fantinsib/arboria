@@ -6,4 +6,5 @@
 //enum class to indicate the general class of the tree
 enum class TreeModel {
     DecisionTree,
-    RandomForest};
+    RandomForest,
+    ExtraTree};

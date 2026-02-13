@@ -15,12 +15,13 @@
 
 #include "dataset/dataset.h"
 #include "split_strategy/types/split_param.h"
-#include "tree/DecisionTree/DecisionTree.h"
 #include "split_criterion/entropy.h"
 #include "split_criterion/gini.h"
 #include "tree/TreeModel.h"
 #include "split_strategy/types/ParamBuilder/ParamBuilder.h"
+#include "tree/DecisionTree/DecisionTree.h"
 #include "tree/RandomForest/randomforest.h"
+#include "tree/ExtraTree/extratree.h"
 #include "helpers/helpers.h"
 
 namespace py = pybind11;
@@ -374,6 +375,115 @@ PYBIND11_MODULE(_arboria, m){
         }
         );
 
+        py::class_<arboria::ExtraTree, arboria::RandomForest>(m, "ExtraTree")
+            .def(py::init([](std::optional<int> n_estimators,
+                        std::optional<int> m_try,
+                        std::optional<int> max_depth, 
+                        std::optional<float> max_samples,
+                        std::optional<int> min_sample_split,
+                        std::optional<int> n_random_split,
+                        std::optional<int> n_jobs,
+                        std::optional<std::uint32_t> seed,
+                        std::string type)
+                        {        
+                        HyperParam hp;
+                        hp.n_estimators = n_estimators;
+                        hp.mtry = m_try; // value always set during Python init ; must be passed
+                        hp.max_samples = max_samples;
+                        hp.min_sample_split = min_sample_split;
+                        hp.n_random_split = n_random_split;
+                        if (max_depth.has_value()) {
+                            hp.max_depth= max_depth;}
+                        if (n_jobs.has_value()){
+                            hp.n_jobs = n_jobs;
+                        }
+                        else {
+                            hp.n_jobs = 1;
+                        }
+                        TreeType type_;
+                        if (type == "regression") type_ = Regression{};
+                        else if (type == "classification") type_ = Classification{};
+                        else throw std::invalid_argument("ExtraTree constructor : invalid TreeType");
+
+
+                        return std::make_unique<arboria::ExtraTree>(hp, type_, seed);}
+                    ),
+            py::arg("n_estimators"), 
+            py::arg("m_try"),
+            py::arg("max_depth") = std::nullopt,
+            py::arg("max_samples") = std::nullopt,
+            py::arg("min_sample_split") = std::nullopt,
+            py::arg("n_random_split") = std::nullopt,
+            py::arg("n_jobs") = std::nullopt,
+            py::arg("seed") = std::nullopt,
+            py::arg("type") = std::nullopt
+    )
+
+            .def("_fit", 
+                [](arboria::ExtraTree& self, 
+                py::array_t<float, py::array::c_style | py::array::forcecast> X,
+                py::array_t<float, py::array::c_style | py::array::forcecast> y,
+                const std::string& criterion, const int m_try) {
+                    
+    //----------------------Input Checks 
+                    auto xb = X.request();
+                    if (xb.ndim != 2) {
+                        throw std::runtime_error("X must be a 2D numpy array.");
+                    }
+                    auto yb = y.request();
+                    if (yb.ndim != 1) {
+                        throw std::runtime_error("y must be a 1D numpy array.");
+                    }
+                    
+    //----------------------Param Build
+
+
+
+
+                    //----------Threshold
+                    int _n_random_split = self.get_n_random_split();
+                    ThresholdComputation threshold = Random{_n_random_split};
+                    //----------Feature
+                    FeatureSelection feature = RandomK{m_try};
+                    TreeType type = self.type_;
+                    
+                    //----------Criterion
+                    Criterion crit;
+                    if (std::holds_alternative<Classification>(type)){
+                        if (criterion == "gini") crit = Gini{};
+                        else if (criterion == "entropy") crit = Entropy{};
+                        else throw std::runtime_error("Unknown split criterion passed to fit for classification.");
+                    }
+                    if (std::holds_alternative<Regression>(type)){
+                        if (criterion == "sse") crit = SSE{};
+                        else throw std::runtime_error("Unknown split criterion passed to fit for regression.");
+                    }
+
+                    SplitParam param = ParamBuilder(TreeModel::ExtraTree, 
+                        type,
+                        crit, 
+                        threshold , 
+                        feature);
+                
+    //----------------------DataSet Build
+                    const size_t n_rows = static_cast<size_t>(xb.shape[0]);
+                    const size_t n_cols = static_cast<size_t>(xb.shape[1]);
+                    if ((size_t)yb.shape[0] != n_rows) {
+                        throw std::runtime_error("y length must match X.shape[0].");
+                    }
+
+                    const float* X_ptr = static_cast<float*>(xb.ptr);
+                    const float* y_ptr = static_cast<float*>(yb.ptr);
+
+                    std::vector<float> X_vec(X_ptr, X_ptr + n_rows * n_cols);
+                    std::vector<float> y_vec(y_ptr, y_ptr + n_rows);
+
+                    arboria::DataSet data(std::move(X_vec), std::move(y_vec), n_rows, n_cols);
+                    self.fit(data, param);
+                },
+                
+                py::arg("X"), py::arg("y"), py::arg("criterion") = "gini", py::arg("m_try")
+            );
 
 
 

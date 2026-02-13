@@ -277,8 +277,10 @@ SplitResult Splitter::best_split_regression(std::span<const int> idx, const Data
             }
 
             else if constexpr ((std::is_same_v<T, Random>)){
-                throw std::logic_error("Not yet implemented");
-            // to implement
+                auto* random_f = std::get_if<Random>(&params.t_comp);
+                int n_random_split = *random_f->n_random_split;
+                thresholds = random_threshold(idx, col,data, n_random_split, context.rng);
+                std::sort(thresholds.begin(), thresholds.end()); 
             }
             
             else if constexpr (std::is_same_v<T, Quantile>) {
