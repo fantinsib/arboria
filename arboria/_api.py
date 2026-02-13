@@ -3,6 +3,7 @@
 from ._arboria import _accuracy
 from ._randomforest import _RandomForest
 from ._decisiontree import _DecisionTree
+from ._extratree import _ExtraTree
 
 import math
 
@@ -376,6 +377,50 @@ class DecisionTreeRegressor(_DecisionTree):
 
         return self._predict(X)
 
+
+class ExtraTreeRegressor(_ExtraTree):
+    def __init__(self, n_estimators: int = 70,
+                max_features: int | str ="sqrt", 
+                max_depth: int = None, 
+                max_samples: float = None,
+                min_sample_split: int = None,
+                n_random_split: int =1,
+                n_jobs: int = 1,
+                seed : int | None = None):
+        
+        super().__init__(
+            n_estimators = n_estimators, 
+            max_features = max_features,
+            max_samples = max_samples, 
+            min_sample_split = min_sample_split,
+            n_random_split = n_random_split,
+            n_jobs = n_jobs,
+            seed = seed, 
+            type = "regression"
+        )
+
+
+
+class ExtraTreeClassifier(_ExtraTree):
+    def __init__(self, n_estimators: int = 70,
+                max_features: int | str ="sqrt", 
+                max_depth: int = None, 
+                max_samples: float = None,
+                min_sample_split: int = None,
+                n_random_split: int =1,
+                n_jobs: int = 1,
+                seed : int | None = None):
+        
+        super().__init__(
+            n_estimators = n_estimators, 
+            max_features = max_features,
+            max_samples = max_samples, 
+            min_sample_split = min_sample_split,
+            n_random_split = n_random_split,
+            n_jobs = n_jobs,
+            seed = seed, 
+            type = "classification"
+        )
 
 
 
