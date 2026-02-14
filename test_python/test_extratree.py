@@ -14,12 +14,26 @@ def test_extratree_constructor_error():
         tree = ExtraTreeRegressor(n_estimators=100,
                               n_random_split=-1)
     
-def test_extratree_simple_predict():
+def test_extratree_simple_predict_classification():
         X = np.array([[0,0,1],[1,1,2], [1,2,1],[4,5,5], [7,8,9], [10,11, 12]])
         y = np.array([0,0,0,1,1,1])
 
-        et = ExtraTreeClassifier(n_estimators=100, 
+        et_c = ExtraTreeClassifier(n_estimators=100, 
                                  n_random_split=1,
                                  seed = 1)
         
-        et.fit(X,y)
+        et_c.fit(X,y)
+
+        et_c.predict(np.array([1,1,0]))
+
+def test_extratree_simple_predict_regression():
+        X = np.array([[0,0,1],[1,1,2], [1,2,1],[4,5,5], [7,8,9], [10,11, 12]])
+        y = np.array([0,0,0,1,1,1])
+
+        et_c = ExtraTreeRegressor(n_estimators=100, 
+                                 n_random_split=1,
+                                 seed = 1)
+        
+        et_c.fit(X,y)
+
+        et_c.predict(np.array([1,1,0]))

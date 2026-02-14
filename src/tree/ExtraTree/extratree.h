@@ -2,7 +2,6 @@
 #include "split_strategy/types/split_hyper.h"
 #include "split_strategy/types/split_param.h"
 #include "tree/RandomForest/randomforest.h"
-#include <_types/_uint32_t.h>
 #include <optional>
 
 namespace arboria {
