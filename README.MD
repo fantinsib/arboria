@@ -34,7 +34,7 @@ This version currently supports :
     - `seed` : random seed 
 
 
-### 'Extremely Randomized Tree'
+### `Extremely Randomized Tree`
  `ExtraTreeClassifier` / `ExtraTreeRegressor`
 - `.fit`: fits an Extremely Randomized tree with `n_estimators` trees. Uses RandomK feature selection (`max_features` features). Supports reproducible randomness via `seed`.
 - `.predict` : predicts class labels or returns the average class probabilities across all trees
