@@ -2,7 +2,6 @@
 #include "split_strategy/types/split_hyper.h"
 #include "split_strategy/types/split_param.h"
 #include "tree/RandomForest/randomforest.h"
-#include <__atomic/aliases.h>
 #include <optional>
 #include <stdexcept>
 

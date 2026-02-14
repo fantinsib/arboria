@@ -33,6 +33,20 @@ This version currently supports :
     - `n_jobs` : number of threads to launch for training; -1 uses all cores
     - `seed` : random seed 
 
+### 'Extremely Randomized Tree'
+ `ExtraTreeClassifier` / `ExtraTreeRegressor`
+- `.fit`: fits an Extremely Randomized tree with `n_estimators` trees. Uses RandomK feature selection (`max_features` features). Supports reproducible randomness via `seed`.
+- `.predict` : predicts class labels or returns the average class probabilities across all trees
+- Hyperparameters currently include :
+    - `n_estimators` : number of trees in the forest
+    - `max_depth` : maximum depth each tree is allowed to reach
+    - `max_features` : number of features randomly selected at each split
+    - `max_samples` : fraction of training set to bootstrap for each tree
+    - `min_sample_split` : minimum number of sample required in a node to allow a split
+    - `n_random_split` : the number of thresholds to be drawn
+    - `n_jobs` : number of threads to launch for training; -1 uses all cores
+    - `seed` : random seed 
+
 ## Installation
 
 ### Requirements
