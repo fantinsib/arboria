@@ -388,8 +388,39 @@ class ExtraTreeRegressor(_ExtraTree):
                 n_jobs: int = 1,
                 seed : int | None = None):
         
+        """
+        Extremely randomized tree regressor.
+
+        Parameters
+        ----------
+        n_estimators : int
+            Number of trees in the forest. Default is 70
+        max_features: int | str
+            Number of features to sample at each split. Can be int or
+            "sqrt" : value set as the square root of the number of features.
+        max_depth : int
+            Maximum depth of the tree. Default is None
+        max_samples: float 
+            Percentage of samples to be boostratpped in each tree. Default bootstraps 
+            the total number of samples. 
+        min_sample_split : int
+            Minimum of samples allowed in a leaf. Default None will set no limit
+        n_random_split: int
+            Number of random threshold to be computed. Default is 1. 
+        n_jobs : int
+            Number of threads to launch for training. Default is 1, -1 will
+            use the maximum number of threads. 
+        seed : int
+            Seed of the tree. Default None will result in a random seed.
+
+        Notes
+        -----
+        Geurts, P., Ernst, D., & Wehenkel, L. (2006). Extremely randomized trees. Machine learning, 63(1), 3-42.
+        """
+        
         super().__init__(
             n_estimators = n_estimators, 
+            max_depth= max_depth,
             max_features = max_features,
             max_samples = max_samples, 
             min_sample_split = min_sample_split,
@@ -398,6 +429,50 @@ class ExtraTreeRegressor(_ExtraTree):
             seed = seed, 
             type = "regression"
         )
+
+    def fit(self, X, y, criterion="sse"):
+        """
+        Fit the extra tree.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+        y : ndarray of shape (n_samples,)
+        criterion : {"gini", "entropy"}, default="gini"
+        """
+        if not hasattr(X, "__array_interface__"):
+            raise TypeError("X must be a NumPy-compatible array")
+
+        if not hasattr(y, "__array_interface__"):
+            raise TypeError("y must be a NumPy-compatible array")
+
+        if self.mtry == -99:
+            self.mtry = max(1, int(math.sqrt(X.shape[1])))
+        if self.mtry == -98:
+            self.mtry = max(1, int(math.log2(X.shape[1])))
+        
+        return self._fit(X, y, criterion, self.mtry)
+
+    def predict(self, X):
+        """
+        Returns predicted class for samples X.
+
+        Parameters
+        ----------
+        X : ndarray with same shape as training data
+
+        Returns
+        -------
+        np.ndarray : array of predicted results.
+        """
+        if not hasattr(X, "__array_interface__"):
+            raise TypeError("X must be a NumPy-compatible array")
+
+        return self._predict(X)
+
+
+
+
 
 
 
@@ -410,9 +485,39 @@ class ExtraTreeClassifier(_ExtraTree):
                 n_random_split: int =1,
                 n_jobs: int = 1,
                 seed : int | None = None):
+        """
+        Extremely randomized tree classifier.
+                
+        Parameters
+        ----------
+        n_estimators : int
+            Number of trees in the forest. Default is 70
+        max_features: int | str
+            Number of features to sample at each split. Can be int or
+            "sqrt" : value set as the square root of the number of features.
+        max_depth : int
+            Maximum depth of the tree. Default is None
+        max_samples: float 
+            Percentage of samples to be boostratpped in each tree. Default bootstraps 
+            the total number of samples. 
+        min_sample_split : int
+            Minimum of samples allowed in a leaf. Default None will set no limit
+        n_random_split: int
+            Number of random threshold to be computed. Default is 1. 
+        n_jobs : int
+            Number of threads to launch for training. Default is 1, -1 will
+            use the maximum number of threads. 
+        seed : int
+            Seed of the tree. Default None will result in a random seed.
+
+        Notes
+        -----
+        Geurts, P., Ernst, D., & Wehenkel, L. (2006). Extremely randomized trees. Machine learning, 63(1), 3-42.
+        """
         
         super().__init__(
             n_estimators = n_estimators, 
+            max_depth= max_depth,
             max_features = max_features,
             max_samples = max_samples, 
             min_sample_split = min_sample_split,
@@ -421,6 +526,49 @@ class ExtraTreeClassifier(_ExtraTree):
             seed = seed, 
             type = "classification"
         )
+
+    def fit(self, X, y, criterion="gini"):
+        """
+        Fit the extra tree.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+        y : ndarray of shape (n_samples,)
+        criterion : {"gini", "entropy"}, default="gini"
+        """
+        if not hasattr(X, "__array_interface__"):
+            raise TypeError("X must be a NumPy-compatible array")
+
+        if not hasattr(y, "__array_interface__"):
+            raise TypeError("y must be a NumPy-compatible array")
+
+        if self.mtry == -99:
+            self.mtry = max(1, int(math.sqrt(X.shape[1])))
+        if self.mtry == -98:
+            self.mtry = max(1, int(math.log2(X.shape[1])))
+        
+        return self._fit(X, y, criterion, self.mtry)
+    
+    def predict(self, X):
+        """
+        Returns predicted class for samples X.
+
+        Parameters
+        ----------
+        X : ndarray with same shape as training data
+
+        Returns
+        -------
+        np.ndarray : array of predicted class as integers.
+        """
+        if not hasattr(X, "__array_interface__"):
+            raise TypeError("X must be a NumPy-compatible array")
+
+        return self._predict(X)
+
+
+
 
 
 

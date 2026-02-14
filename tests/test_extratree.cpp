@@ -55,7 +55,6 @@ TEST_CASE("ExtraTree : constructor") {
     SplitParam param = arboria::ParamBuilder(TreeModel::ExtraTree, 
                                             Classification{}, Gini{}, 
                                             Random{.n_random_split = 1}, RandomK{.mtry = 2});
-
     HyperParam h_param{.mtry = 2, .n_random_split= 1, .n_estimators = 25};
 
     ExtraTree et(h_param, Classification{}, 123);
@@ -63,5 +62,29 @@ TEST_CASE("ExtraTree : constructor") {
     et.fit(data, param);
     
     REQUIRE(et.is_fitted() == true);
+
+}
+
+TEST_CASE("ExtraTree : randomness"){
+    
+    DataSet data = make_separable_dataset();
+
+    SplitParam param = arboria::ParamBuilder(TreeModel::ExtraTree, 
+                                            Classification{}, Gini{}, 
+                                            Random{.n_random_split = 2}, RandomK{.mtry = 2});
+    HyperParam h_param{.mtry = 2, .n_random_split= 2, .n_estimators = 25};
+
+    ExtraTree et1(h_param, Classification{}, 123);
+    ExtraTree et2(h_param, Classification{}, 123);
+    ExtraTree et3(h_param, Classification{}, 321);
+
+    et1.fit(data, param);
+    et2.fit(data, param);
+    et3.fit(data, param);
+    
+    std::vector<float> x_test{2,2,2};
+
+    REQUIRE(et1.predict_proba(x_test) == et2.predict_proba(x_test));
+    REQUIRE(et1.predict_proba(x_test) != et3.predict_proba(x_test));
 
 }

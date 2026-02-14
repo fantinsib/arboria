@@ -15,6 +15,7 @@ add_executable(arboria_tests
     test_random_forest.cpp
     test_extratree.cpp
     test_access.cpp
+    test_random_threshold.cpp
 )
 
 target_link_libraries(arboria_tests

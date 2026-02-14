@@ -23,4 +23,3 @@ def test_extratree_simple_predict():
                                  seed = 1)
         
         et.fit(X,y)
-        

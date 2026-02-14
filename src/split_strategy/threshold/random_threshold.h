@@ -40,25 +40,24 @@ inline std::vector<float> random_threshold(std::span<const int> idx,
 
     if (n_random_split == 0) throw std::invalid_argument("arboria::split_strategy::random_threshold : n_random_split size cannot be 0");
 
-    auto min_max = std::minmax_element(idx.begin(), idx.end(),
-    [&](int i, int j) {return data.iloc_x(i,col) < data.iloc_x(j, col);});
+    std::uniform_int_distribution<size_t> index_dist(0, idx_size-1);
 
-    float min_val = data.iloc_x(*min_max.first, col);
-    float max_val = data.iloc_x(*min_max.second, col);
+    float val1 = data.iloc_x(idx[index_dist(rng)], col);
+    float val2 = data.iloc_x(idx[index_dist(rng)], col);
 
-    if (min_val > max_val) throw std::logic_error("arboria::split_strategy::random_threshold : min_val > max_val");
+    if (val1 == val2) return {val1};
 
-    if ((max_val - min_val) < 1e-7) {
-        return std::vector<float>{min_val};
-    }
+    float max_val = std::max(val1, val2);
+    float min_val = std::min(val1, val2);
 
     std::uniform_real_distribution<float> dist(min_val, max_val);
 
-    std::vector<float> thresholds(n_random_split);
+    std::vector<float> thresholds;
+    thresholds.reserve(n_random_split);
 
     for (size_t i = 0; i<n_random_split; i++ ){
         float r_i = dist(rng);
-        thresholds[i] = r_i;
+        thresholds.push_back(r_i);
     }
     return thresholds;
 }
