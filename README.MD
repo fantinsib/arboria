@@ -33,6 +33,7 @@ This version currently supports :
     - `n_jobs` : number of threads to launch for training; -1 uses all cores
     - `seed` : random seed 
 
+
 ### 'Extremely Randomized Tree'
  `ExtraTreeClassifier` / `ExtraTreeRegressor`
 - `.fit`: fits an Extremely Randomized tree with `n_estimators` trees. Uses RandomK feature selection (`max_features` features). Supports reproducible randomness via `seed`.
